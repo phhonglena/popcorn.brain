@@ -250,6 +250,65 @@ html,body{height:100%;font-family:'DM Sans',system-ui,sans-serif;color:#12103D;o
 .lb-bold{font-family:'Space Grotesk',sans-serif;font-weight:800;color:#12103D}
 .lb-empty{text-align:center;font-size:.8rem;color:#4A4280;padding:12px}
 
+
+/* ── WELCOME OVERLAY ── */
+#welcomeOverlay{
+  position:fixed;inset:0;z-index:500;
+  display:flex;align-items:center;justify-content:center;
+  background:rgba(7,16,31,.55);
+  backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+}
+.wcard{
+  background:rgba(255,255,255,.97);
+  border-radius:24px;padding:36px 32px 28px;
+  width:360px;max-width:92vw;
+  box-shadow:0 24px 64px rgba(18,16,61,.22);
+  animation:wPop .32s cubic-bezier(.22,1,.36,1);
+}
+@keyframes wPop{from{transform:scale(.88) translateY(16px);opacity:0}to{transform:scale(1) translateY(0);opacity:1}}
+.wcard-icon{font-size:2.4rem;display:block;text-align:center;margin-bottom:10px}
+.wcard h2{
+  font-family:'Space Grotesk',sans-serif;font-weight:800;font-size:1.5rem;
+  letter-spacing:-.04em;color:#12103D;text-align:center;margin-bottom:6px;
+}
+.wcard-sub{font-size:.84rem;color:#4A4280;text-align:center;margin-bottom:22px;line-height:1.55}
+.winput-wrap{position:relative;margin-bottom:6px}
+.winput{
+  width:100%;padding:11px 40px 11px 14px;
+  border:1.5px solid rgba(18,16,61,.14);border-radius:12px;
+  font-family:'DM Sans',sans-serif;font-size:.95rem;color:#12103D;
+  background:#fff;outline:none;transition:border-color .15s,box-shadow .15s;
+}
+.winput:focus{border-color:#FFB03C;box-shadow:0 0 0 3px rgba(255,176,60,.14)}
+.winput.ok{border-color:#07C496}
+.winput.err{border-color:#F20231}
+.wcheck{
+  position:absolute;right:12px;top:50%;transform:translateY(-50%);
+  font-size:1rem;pointer-events:none;
+}
+.wstatus{font-size:.75rem;min-height:18px;margin-bottom:10px;padding-left:2px;transition:color .15s}
+.wstatus.ok{color:#05916D}
+.wstatus.err{color:#C0001E}
+.wstatus.info{color:#4A4280}
+.wsuggest{margin-bottom:16px}
+.wsuggest-lbl{font-size:.7rem;font-weight:700;color:#4A4280;letter-spacing:.05em;margin-bottom:7px}
+.wsuggest-chips{display:flex;flex-wrap:wrap;gap:6px}
+.wchip{
+  padding:4px 11px;border-radius:20px;
+  border:1.5px solid rgba(18,16,61,.12);background:rgba(255,255,255,.7);
+  font-size:.8rem;font-weight:600;color:#4A4280;
+  cursor:pointer;transition:all .13s;
+}
+.wchip:hover{border-color:#FFB03C;color:#12103D;background:rgba(255,176,60,.08)}
+.wbtn{
+  width:100%;padding:12px;
+  background:#FFB03C;color:#fff;border:none;border-radius:12px;
+  font-family:'Space Grotesk',sans-serif;font-size:.95rem;font-weight:700;
+  cursor:pointer;transition:all .14s;
+}
+.wbtn:hover{transform:translateY(-1px);box-shadow:0 6px 18px rgba(255,176,60,.45)}
+.wbtn:disabled{opacity:.45;cursor:not-allowed;transform:none;box-shadow:none}
+
 /* Toast */
 .toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#12103D;color:#fff;padding:9px 20px;border-radius:20px;font-size:.84rem;font-weight:500;z-index:999;opacity:0;pointer-events:none;transition:opacity .22s;white-space:nowrap}
 .toast.show{opacity:1}
@@ -268,7 +327,7 @@ html,body{height:100%;font-family:'DM Sans',system-ui,sans-serif;color:#12103D;o
 <!-- ══════════ LOBBY ══════════ -->
 <div id="lobby">
   <nav class="topbar">
-    <a href="index.html" class="back-btn">← Chọn phòng</a>
+    <a href="rooms.html" class="back-btn">← Chọn phòng</a>
     <div class="nav-title">🍿 POP-AI · Phòng học nhóm</div>
     <div class="nav-right">
       <span class="nav-nick" id="navNick">...</span>
@@ -818,11 +877,156 @@ function buildLeaderboard() {
   });
 }
 
+
+/* ── WELCOME / NICK REGISTRATION ── */
+const REGISTERED_KEY = 'popai-all-nicks';
+
+function getAllNicks() {
+  return JSON.parse(localStorage.getItem(REGISTERED_KEY) || '[]');
+}
+function registerNick(n) {
+  const list = getAllNicks();
+  if (!list.includes(n)) { list.push(n); localStorage.setItem(REGISTERED_KEY, JSON.stringify(list)); }
+}
+function isNickTaken(n) {
+  return getAllNicks().map(x => x.toLowerCase()).includes(n.toLowerCase());
+}
+
+function genSuggestions(base) {
+  const taken = getAllNicks().map(x => x.toLowerCase());
+  const clean = base.replace(/[^a-zA-Z0-9àáạảãăắặẳẵằâấậẩẫđèéẹẻẽêếệểễìíịỉĩòóọỏõôốộổỗơớợởỡùúụủũưứựửữỳýỵỷỹ]/gi, '');
+  const year  = new Date().getFullYear().toString().slice(2); // "26"
+  const seeds = [
+    clean + year,
+    clean + '09', clean + '22', clean + '07', clean + '99',
+    clean + '_vt', clean + '2k', 'study_' + clean, clean + 'oi'
+  ];
+  return seeds.filter(s => s.length > 1 && !taken.includes(s.toLowerCase())).slice(0, 5);
+}
+
+let _nickDebounce = null;
+function onNickInput() {
+  clearTimeout(_nickDebounce);
+  const val = document.getElementById('wInput').value.trim();
+  const btn = document.getElementById('wBtn');
+  const status = document.getElementById('wStatus');
+  const check  = document.getElementById('wCheck');
+  const inp    = document.getElementById('wInput');
+  const sugBox = document.getElementById('wSuggestBox');
+
+  if (!val) {
+    inp.className = 'winput';
+    check.textContent = '';
+    status.textContent = 'Nhập tên để kiểm tra...';
+    status.className = 'wstatus info';
+    btn.disabled = true;
+    sugBox.style.display = 'none';
+    return;
+  }
+  if (val.length < 2) {
+    inp.className = 'winput err';
+    check.textContent = '✕';
+    status.textContent = 'Tên phải có ít nhất 2 ký tự.';
+    status.className = 'wstatus err';
+    btn.disabled = true;
+    sugBox.style.display = 'none';
+    return;
+  }
+
+  status.textContent = 'Đang kiểm tra...';
+  status.className = 'wstatus info';
+  inp.className = 'winput';
+  check.textContent = '';
+
+  _nickDebounce = setTimeout(() => {
+    if (isNickTaken(val)) {
+      inp.className = 'winput err';
+      check.textContent = '✕';
+      status.textContent = '"' + val + '" đã có người dùng rồi!';
+      status.className = 'wstatus err';
+      btn.disabled = true;
+      // Show suggestions
+      const sugs = genSuggestions(val);
+      if (sugs.length) {
+        const chips = document.getElementById('wChips');
+        chips.innerHTML = sugs.map(s =>
+          '<span class="wchip" onclick="pickSuggestion(\''+s+'\'")>' + s + '</span>'
+        ).join('');
+        sugBox.style.display = 'block';
+      }
+    } else {
+      inp.className = 'winput ok';
+      check.textContent = '✓';
+      status.textContent = '"' + val + '" có thể dùng! 🎉';
+      status.className = 'wstatus ok';
+      btn.disabled = false;
+      sugBox.style.display = 'none';
+    }
+  }, 350);
+}
+
+function pickSuggestion(name) {
+  const inp = document.getElementById('wInput');
+  inp.value = name;
+  onNickInput();
+}
+
+function confirmNick() {
+  const val = document.getElementById('wInput').value.trim();
+  if (!val || val.length < 2 || isNickTaken(val)) return;
+  registerNick(val);
+  localStorage.setItem('popai-nickname', val);
+  document.getElementById('welcomeOverlay').style.display = 'none';
+  bootLobby();
+}
+
+function checkAndShowWelcome() {
+  const existing = localStorage.getItem('popai-nickname');
+  if (!existing) {
+    document.getElementById('welcomeOverlay').style.display = 'flex';
+  } else {
+    // Still register in case they used it before this feature existed
+    registerNick(existing);
+    bootLobby();
+  }
+}
+
+function bootLobby() {
+  document.getElementById('navNick').textContent = nick();
+  document.getElementById('navAv').innerHTML     = avHtml(av());
+  renderMyRooms();
+  buildLeaderboard();
+}
+
 /* ─── BOOT ─── */
-document.getElementById('navNick').textContent = nick();
-document.getElementById('navAv').innerHTML     = avHtml(av());
-renderMyRooms();
-buildLeaderboard();
+checkAndShowWelcome();
 </script>
+
+<!-- ══════════ WELCOME OVERLAY ══════════ -->
+<div id="welcomeOverlay" style="display:none">
+  <div class="wcard">
+    <span class="wcard-icon">🐑</span>
+    <h2>Chào mừng đến POP-AI!</h2>
+    <p class="wcard-sub">Đặt nickname để bắt đầu học.<br>Tên này sẽ hiện trên bảng thi đua của bạn nhé!</p>
+
+    <div class="winput-wrap">
+      <input type="text" id="wInput" class="winput"
+        placeholder="Nickname của bạn..."
+        maxlength="20" autocomplete="off"
+        oninput="onNickInput()"
+        onkeydown="if(event.key==='Enter') confirmNick()">
+      <span class="wcheck" id="wCheck"></span>
+    </div>
+    <div class="wstatus info" id="wStatus">Nhập tên để kiểm tra...</div>
+
+    <div class="wsuggest" id="wSuggestBox" style="display:none">
+      <div class="wsuggest-lbl">GỢI Ý CÓ THỂ DÙNG</div>
+      <div class="wsuggest-chips" id="wChips"></div>
+    </div>
+
+    <button class="wbtn" id="wBtn" onclick="confirmNick()" disabled>Vào học thôi! →</button>
+  </div>
+</div>
+
 </body>
 </html>
