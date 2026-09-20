@@ -586,6 +586,180 @@ nav {
   .tree, .zzz, .f1, .f2, .bubble,
   .room-heart, .lamp-bulb, .lamp-glow { animation: none !important; }
 }
+
+/* ══════════════════════════════════════════════════════
+   NICKNAME MODAL
+══════════════════════════════════════════════════════ */
+.nm-overlay {
+  position: fixed; inset: 0; z-index: 9999;
+  background: rgba(7,16,31,0.72);
+  backdrop-filter: blur(16px) saturate(1.3);
+  -webkit-backdrop-filter: blur(16px) saturate(1.3);
+  display: flex; align-items: center; justify-content: center;
+  transition: opacity .3s;
+}
+.nm-overlay.hidden { opacity: 0; pointer-events: none; }
+
+.nm-card {
+  background: var(--s1);
+  border: 1px solid var(--b2);
+  border-radius: 22px;
+  padding: 40px 36px;
+  width: 360px;
+  box-shadow: 0 28px 72px var(--sd);
+  text-align: center;
+  animation: nmPop .35s cubic-bezier(.22,1,.36,1);
+}
+@keyframes nmPop {
+  from { transform: scale(.88) translateY(16px); opacity: 0; }
+  to   { transform: scale(1)   translateY(0);    opacity: 1; }
+}
+.nm-logo { font-size: 2.6rem; display: block; margin-bottom: 12px; }
+.nm-card h2 {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 1.6rem; font-weight: 800; letter-spacing: -0.045em;
+  color: var(--text); margin-bottom: 8px;
+}
+.nm-sub {
+  font-size: .875rem; color: var(--muted);
+  margin-bottom: 24px; line-height: 1.55;
+}
+.nm-input {
+  width: 100%; padding: 12px 16px;
+  border: 1.5px solid var(--b2); border-radius: 13px;
+  font-family: 'DM Sans', sans-serif; font-size: .95rem;
+  background: var(--bg); color: var(--text);
+  outline: none; transition: border-color .15s, box-shadow .15s;
+  margin-bottom: 8px;
+}
+.nm-input:focus {
+  border-color: var(--ybtn);
+  box-shadow: 0 0 0 3px rgba(242,2,49,.13);
+}
+.nm-input.err { border-color: var(--ybtn); }
+.nm-note {
+  display: block; text-align: left;
+  font-size: .72rem; color: var(--muted);
+  padding-left: 4px; margin-bottom: 18px;
+  line-height: 1.5;
+}
+.nm-btn {
+  width: 100%; padding: 13px;
+  background: var(--ybtn); color: #fff;
+  border: none; border-radius: 13px;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 1rem; font-weight: 700;
+  cursor: pointer;
+  transition: transform .13s, box-shadow .13s;
+}
+.nm-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 24px rgba(242,2,49,.35);
+}
+
+/* ══════════════════════════════════════════════════════
+   AVATAR PICKER MODAL
+══════════════════════════════════════════════════════ */
+.av-overlay {
+  position: fixed; inset: 0; z-index: 9990;
+  background: rgba(7,16,31,0.50);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  display: flex; align-items: center; justify-content: center;
+  opacity: 0; pointer-events: none;
+  transition: opacity .2s;
+}
+.av-overlay.open { opacity: 1; pointer-events: auto; }
+
+.av-picker {
+  background: var(--s1);
+  border: 1px solid var(--b2);
+  border-radius: 20px;
+  padding: 28px 26px 22px;
+  width: 320px;
+  box-shadow: 0 24px 60px var(--sd);
+  animation: nmPop .28s cubic-bezier(.22,1,.36,1);
+}
+.av-picker h3 {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 1.05rem; font-weight: 700; letter-spacing: -0.025em;
+  color: var(--text); margin-bottom: 16px; text-align: center;
+}
+.av-upload-row {
+  display: flex; align-items: center; gap: 10px;
+  padding: 11px 14px; border-radius: 12px;
+  border: 1.5px dashed var(--b2);
+  cursor: pointer; font-size: .875rem; color: var(--muted);
+  transition: border-color .14s, background .14s;
+  margin-bottom: 14px; user-select: none;
+}
+.av-upload-row:hover {
+  border-color: var(--ybtn);
+  background: rgba(242,2,49,.04); color: var(--text);
+}
+.av-divider {
+  display: flex; align-items: center; gap: 8px;
+  font-size: .70rem; color: var(--muted); margin-bottom: 10px;
+}
+.av-divider::before, .av-divider::after {
+  content:''; flex:1; height:1px; background: var(--b1);
+}
+.av-presets {
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px;
+  margin-bottom: 16px;
+}
+.av-preset {
+  aspect-ratio: 1;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.5rem; border-radius: 12px;
+  border: 2px solid var(--b1);
+  cursor: pointer; user-select: none;
+  transition: border-color .12s, transform .12s, box-shadow .12s, background .12s;
+}
+.av-preset:hover { border-color: var(--ybtn); transform: scale(1.1); background: var(--s2); }
+.av-preset.selected {
+  border-color: var(--ybtn);
+  box-shadow: 0 0 0 3px rgba(242,2,49,.18);
+  background: var(--s2);
+}
+.av-done-btn {
+  width: 100%; padding: 10px;
+  background: var(--ybtn); color: #fff;
+  border: none; border-radius: 11px;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: .9rem; font-weight: 700;
+  cursor: pointer; transition: opacity .15s;
+}
+.av-done-btn:hover { opacity: .87; }
+
+/* ══════════════════════════════════════════════════════
+   NAV NICKNAME & AVATAR UPDATE
+══════════════════════════════════════════════════════ */
+.nav-nick-wrap {
+  display: flex; align-items: center;
+  margin-right: 2px; position: relative;
+}
+.nav-nick-text {
+  font-size: .875rem; font-weight: 600;
+  color: var(--text); cursor: pointer;
+  padding: 4px 9px; border-radius: 9px;
+  border: 1px solid transparent;
+  max-width: 110px; white-space: nowrap;
+  overflow: hidden; text-overflow: ellipsis;
+  transition: border-color .14s, background .14s;
+}
+.nav-nick-text:hover { border-color: var(--b2); background: var(--s2); }
+.nav-nick-input {
+  display: none; font-size: .875rem; font-weight: 600;
+  color: var(--text); padding: 4px 9px;
+  border: 1.5px solid var(--ybtn); border-radius: 9px;
+  background: var(--bg); outline: none; width: 120px;
+}
+.avatar-img-el {
+  width: 100%; height: 100%;
+  border-radius: 50%; object-fit: cover;
+}
+.avatar-emoji-el { font-size: 1.05rem; line-height: 1; }
 </style>
 </head>
 
@@ -610,9 +784,9 @@ nav {
       <a href="#" class="nl">Rooms ▾</a>
       <div class="dropdown">
         <a href="room1.html"      class="ddi"><span class="ddi-dot" style="background:#3A86FF"></span>Kế hoạch cá nhân</a>
-        <a href="room2.html"    class="ddi"><span class="ddi-dot" style="background:#FF6B9D"></span>Tâm sự &amp; Gỡ rối</a>
-        <a href="room3.html" class="ddi"><span class="ddi-dot" style="background:#07C496"></span>Nghỉ ngơi</a>
-        <a href="room3.html"    class="ddi"><span class="ddi-dot" style="background:#FFB03C"></span>Bạn bè</a>
+        <a href="tam-su.html"    class="ddi"><span class="ddi-dot" style="background:#FF6B9D"></span>Tâm sự &amp; Gỡ rối</a>
+        <a href="nghi-ngoi.html" class="ddi"><span class="ddi-dot" style="background:#07C496"></span>Nghỉ ngơi</a>
+        <a href="ban-be.html"    class="ddi"><span class="ddi-dot" style="background:#FFB03C"></span>Bạn bè</a>
       </div>
     </div>
     <a href="#" class="nl">Contact</a>
@@ -622,12 +796,32 @@ nav {
     <button class="theme-btn" id="themeBtn" onclick="toggleTheme()" aria-label="Đổi theme">
       <span id="themeIcon">🌙</span>
     </button>
-    <div class="avatar" title="Chưa có hồ sơ — làm bài test POP-Meter trước!">
-      <svg viewBox="0 0 24 24" fill="none" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
-        <circle cx="12" cy="8.5" r="4.2"/>
-        <path d="M4 21c0-4.4 3.6-7.5 8-7.5s8 3.1 8 7.5"/>
-      </svg>
-      <div class="av-b">?</div>
+    <!-- Nickname display / inline edit -->
+    <div class="nav-nick-wrap">
+      <span
+        class="nav-nick-text"
+        id="navNickText"
+        onclick="startEditNick()"
+        title="Click để đổi nickname"
+      >...</span>
+      <input
+        type="text"
+        id="navNickInput"
+        class="nav-nick-input"
+        maxlength="20"
+        onblur="finishEditNick()"
+        onkeydown="if(event.key==='Enter') this.blur()"
+      >
+    </div>
+    <!-- Avatar — click to change -->
+    <div class="avatar" id="avatarBtn" onclick="openAvPicker()" title="Đổi ảnh đại diện">
+      <span id="avatarDisplay">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;stroke:var(--ic)">
+          <circle cx="12" cy="8.5" r="4.2"/>
+          <path d="M4 21c0-4.4 3.6-7.5 8-7.5s8 3.1 8 7.5"/>
+        </svg>
+      </span>
+      <div class="av-b" id="avBadge">?</div>
     </div>
   </div>
 </nav>
@@ -989,7 +1183,191 @@ function onAudioEnd() {
   document.querySelectorAll('#wf span').forEach(b => { b.style.opacity = '.4'; b.style.animation = ''; });
   document.getElementById('aHint').textContent = 'Nghe trước khi chọn phòng nhé!';
 }
+
+/* ═══════════════════════════════════════════════════════
+   USER SYSTEM — nickname + avatar
+═══════════════════════════════════════════════════════ */
+const ANIMAL_PRESETS = [
+  '🐶','🐱','🐰','🦊','🐻','🐼',
+  '🐨','🐧','🐹','🐸','🐥','🦉',
+  '🦋','🌸','⭐','🍄'
+];
+
+function initUserSystem() {
+  buildAvatarPresets();
+  const nick = localStorage.getItem('popai-nickname');
+  if (!nick) {
+    document.getElementById('nmOverlay').classList.remove('hidden');
+    setTimeout(() => {
+      const inp = document.getElementById('nmInput');
+      if (inp) inp.focus();
+    }, 150);
+  } else {
+    refreshNavNick(nick);
+  }
+  const av = localStorage.getItem('popai-avatar') || '';
+  refreshNavAvatar(av);
+}
+
+function submitNick() {
+  const inp = document.getElementById('nmInput');
+  const val = inp.value.trim();
+  if (!val) { inp.classList.add('err'); inp.focus(); return; }
+  inp.classList.remove('err');
+  localStorage.setItem('popai-nickname', val);
+  const av = localStorage.getItem('popai-avatar') || '';
+  if (av) localStorage.setItem('popai-av-' + val, av);
+  document.getElementById('nmOverlay').classList.add('hidden');
+  refreshNavNick(val);
+}
+
+function refreshNavNick(nick) {
+  const el = document.getElementById('navNickText');
+  if (el) el.textContent = nick;
+}
+
+function startEditNick() {
+  const t = document.getElementById('navNickText');
+  const i = document.getElementById('navNickInput');
+  if (!t || !i) return;
+  i.value = t.textContent;
+  t.style.display = 'none';
+  i.style.display = 'inline-block';
+  i.focus(); i.select();
+}
+
+function finishEditNick() {
+  const t = document.getElementById('navNickText');
+  const i = document.getElementById('navNickInput');
+  if (!t || !i) return;
+  const val = i.value.trim();
+  if (val) { localStorage.setItem('popai-nickname', val); refreshNavNick(val); }
+  i.style.display = 'none';
+  t.style.display = 'inline-block';
+}
+
+function buildAvatarPresets() {
+  const c = document.getElementById('avPresets');
+  if (!c || c.children.length > 0) return;
+  const cur = localStorage.getItem('popai-avatar') || '';
+  ANIMAL_PRESETS.forEach(p => {
+    const d = document.createElement('div');
+    d.className = 'av-preset' + (p === cur ? ' selected' : '');
+    d.dataset.val = p;
+    d.textContent = p;
+    d.onclick = () => choosePresetAv(p, d);
+    c.appendChild(d);
+  });
+}
+
+function openAvPicker() {
+  document.getElementById('avOverlay').classList.add('open');
+  const cur = localStorage.getItem('popai-avatar') || '';
+  document.querySelectorAll('#avPresets .av-preset').forEach(el => {
+    el.classList.toggle('selected', el.dataset.val === cur);
+  });
+}
+
+function closeAvPicker() {
+  document.getElementById('avOverlay').classList.remove('open');
+}
+
+function avOverlayClick(e) {
+  if (e.target.id === 'avOverlay') closeAvPicker();
+}
+
+function choosePresetAv(val, el) {
+  document.querySelectorAll('#avPresets .av-preset').forEach(e => e.classList.remove('selected'));
+  el.classList.add('selected');
+  persistAvatar(val);
+}
+
+function handleAvatarFile(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => { persistAvatar(ev.target.result); closeAvPicker(); };
+  reader.readAsDataURL(file);
+  e.target.value = '';
+}
+
+function persistAvatar(val) {
+  localStorage.setItem('popai-avatar', val);
+  const nick = localStorage.getItem('popai-nickname');
+  if (nick) localStorage.setItem('popai-av-' + nick, val);
+  refreshNavAvatar(val);
+}
+
+function refreshNavAvatar(val) {
+  const d = document.getElementById('avatarDisplay');
+  const b = document.getElementById('avBadge');
+  if (!d) return;
+  if (!val) {
+    d.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;stroke:var(--ic)"><circle cx="12" cy="8.5" r="4.2"/><path d="M4 21c0-4.4 3.6-7.5 8-7.5s8 3.1 8 7.5"/></svg>`;
+    if (b) b.textContent = '?';
+  } else if (val.startsWith('data:')) {
+    d.innerHTML = `<img src="${val}" class="avatar-img-el" alt="av">`;
+    if (b) b.textContent = '✓';
+  } else {
+    d.innerHTML = `<span class="avatar-emoji-el">${val}</span>`;
+    if (b) b.textContent = '✓';
+  }
+}
+
+/* Boot */
+initUserSystem();
+
+(function() {
+  const inp = document.getElementById('nmInput');
+  if (inp) inp.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') submitNick();
+  });
+  const navInp = document.getElementById('navNickInput');
+  if (navInp) navInp.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') this.blur();
+  });
+})();
+
 </script>
 
+
+<!-- ══════════════════════════════════════════════════════
+     NICKNAME MODAL
+══════════════════════════════════════════════════════ -->
+<div class="nm-overlay hidden" id="nmOverlay">
+  <div class="nm-card">
+    <span class="nm-logo">🍿</span>
+    <h2>Xin chào!</h2>
+    <p class="nm-sub">Trước khi vào phòng, cho mình biết nickname của bạn nhé — để mọi người nhận ra bạn!</p>
+    <input
+      type="text"
+      id="nmInput"
+      class="nm-input"
+      placeholder="Ví dụ: Lena, Bear, Cloudy…"
+      maxlength="20"
+      autocomplete="off"
+    >
+    <span class="nm-note">💡 Đây sẽ là tên hiển thị của bạn trên web và bảng thi đua</span>
+    <button class="nm-btn" onclick="submitNick()">Vào phòng! →</button>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════
+     AVATAR PICKER MODAL
+══════════════════════════════════════════════════════ -->
+<div class="av-overlay" id="avOverlay" onclick="avOverlayClick(event)">
+  <div class="av-picker" id="avPicker">
+    <h3>Ảnh đại diện</h3>
+    <div class="av-upload-row" onclick="document.getElementById('avFileInput').click()">
+      <span>📁</span>
+      <span>Tải ảnh lên từ máy</span>
+    </div>
+    <input type="file" id="avFileInput" accept="image/*" style="display:none"
+      onchange="handleAvatarFile(event)">
+    <div class="av-divider"><span>hoặc chọn chibi cute</span></div>
+    <div class="av-presets" id="avPresets"></div>
+    <button class="av-done-btn" onclick="closeAvPicker()">Xong ✓</button>
+  </div>
+</div>
 </body>
 </html>
