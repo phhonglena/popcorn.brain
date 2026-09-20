@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>POP-AI — Đồng hành cùng bạn</title>
+<title>Điểm Hẹn</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700;800&family=DM+Sans:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
@@ -601,7 +601,7 @@ nav {
 <nav>
   <a href="index.html" class="logo">
     <span class="corn">🍿</span>
-    <span>POP-AI</span>
+    <span>Điểm hẹn</span>
   </a>
 
   <div class="nav-c">
@@ -642,7 +642,7 @@ nav {
 
     <div class="eyebrow">
       <span>🍿</span>
-      <span>giải phóng não khỏi vòng lặp thông tin</span>
+      <span>Giải phóng não khỏi vòng lặp thông tin</span>
     </div>
 
     <h1 class="hero-title">PICK YOUR<br><span class="accent">ROOM!</span></h1>
@@ -664,11 +664,11 @@ nav {
       <div class="wf" id="wf"></div>
     </div>
 
-    <audio id="audioEl" src="" preload="none" onended="onAudioEnd()"></audio>
+    <audio id="audioEl" src="intro.mp3" preload="auto" onended="onAudioEnd()"></audio>
 
     <div class="hero-foot">
       <div class="tags">
-        <span class="tag">🍿 POP-AI</span>
+        <span class="tag">🍿 Điểm Hẹn</span>
         <span class="dot">·</span>
         <span class="tag">KHKT</span>
         <span class="dot">·</span>
@@ -988,6 +988,188 @@ function onAudioEnd() {
   document.getElementById('playIcon').innerHTML = '<path d="M8 5.14v13.72L19 12 8 5.14z"/>';
   document.querySelectorAll('#wf span').forEach(b => { b.style.opacity = '.4'; b.style.animation = ''; });
   document.getElementById('aHint').textContent = 'Nghe trước khi chọn phòng nhé!';
+}
+<script>
+/* ── Waveform bars ── */
+(function () {
+  const wf = document.getElementById('wf');
+  [8,14,11,22,17,27,13,21,16,25,11,19].forEach(h => {
+    const b = document.createElement('span');
+    b.style.height = h + 'px';
+    wf.appendChild(b);
+  });
+})();
+
+/* ── Theme ── */
+(function () { apply(localStorage.getItem('popai-theme') || 'light'); })();
+function toggleTheme() {
+  apply(document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark');
+}
+function apply(t) {
+  document.documentElement.setAttribute('data-theme', t);
+  localStorage.setItem('popai-theme', t);
+  document.getElementById('themeIcon').textContent = t === 'light' ? '🌙' : '☀️';
+}
+
+/* ════════════════════════════════════════════════
+   BG MUSIC — Web Audio API, không cần file
+   Lo-fi loop 76 BPM: Gm7 → Ebmaj7 → Cm7 → F7
+   Pad (sine) + Bass (triangle) + Arpeggio + Tape echo
+════════════════════════════════════════════════ */
+let _ctx = null, _out = null, _sched = null, _bgOn = false;
+
+function startBg() {
+  if (_bgOn) return;
+  _bgOn = true;
+  _ctx = new (window.AudioContext || window.webkitAudioContext)();
+
+  _out = _ctx.createGain();
+  _out.gain.setValueAtTime(0, _ctx.currentTime);
+  _out.gain.linearRampToValueAtTime(0.20, _ctx.currentTime + 3); /* fade-in 3s */
+
+  /* Lowpass filter — cắt treble cho ấm */
+  const lpf = _ctx.createBiquadFilter();
+  lpf.type = 'lowpass'; lpf.frequency.value = 1050; lpf.Q.value = 0.5;
+
+  /* Tape echo (delay feedback) */
+  const dly = _ctx.createDelay(1.0); dly.delayTime.value = 0.42;
+  const dfb = _ctx.createGain(); dfb.gain.value = 0.28;
+  _out.connect(lpf);
+  lpf.connect(_ctx.destination);
+  lpf.connect(dly); dly.connect(dfb); dfb.connect(lpf);
+
+  /* Phát 1 note tổng hợp */
+  function N(freq, start, dur, vol, type = 'sine') {
+    const osc = _ctx.createOscillator(), g = _ctx.createGain();
+    osc.type = type;
+    osc.frequency.value = freq;
+    osc.detune.value = (Math.random() - 0.5) * 8; /* humanise nhẹ */
+    const att = Math.min(0.6, dur * 0.2);
+    g.gain.setValueAtTime(0, start);
+    g.gain.linearRampToValueAtTime(vol, start + att);
+    g.gain.setValueAtTime(vol * 0.80, start + dur * 0.72);
+    g.gain.linearRampToValueAtTime(0, start + dur);
+    osc.connect(g); g.connect(_out);
+    osc.start(start); osc.stop(start + dur + 0.1);
+  }
+
+  const BPM = 76, bt = 60 / BPM, bar = bt * 4; /* 1 bar ≈ 3.16s */
+
+  /* Pad chords: 4 note mỗi chord, note đầu = bass (triangle) */
+  const PADS = [
+    /* Gm7    */ [ 98.00, 116.54, 146.83, 174.61 ],
+    /* Ebmaj7 */ [ 77.78,  98.00, 116.54, 146.83 ],
+    /* Cm7    */ [ 65.41,  77.78,  98.00, 116.54 ],
+    /* F7     */ [ 87.31, 110.00, 130.81, 155.56 ],
+  ];
+
+  /* Arpeggio: high register, 4 note lặp qua 8 eighth-note steps = 1 bar */
+  const ARPS = [
+    /* Gm7    */ [ 392.00, 466.16, 587.33, 466.16 ],
+    /* Ebmaj7 */ [ 311.13, 392.00, 493.88, 392.00 ],
+    /* Cm7    */ [ 261.63, 311.13, 392.00, 311.13 ],
+    /* F7     */ [ 349.23, 440.00, 523.25, 440.00 ],
+  ];
+
+  function loop(t0) {
+    const LOOP = bar * 4;
+
+    PADS.forEach((ch, ci) => {
+      const t = t0 + ci * bar;
+
+      /* Pad */
+      ch.forEach((f, fi) => {
+        N(f, t, bar * 0.94,
+          fi === 0 ? 0.16 : 0.046,
+          fi === 0 ? 'triangle' : 'sine');
+      });
+
+      /* Arpeggio: 8 eighth notes, mỗi step = bt/2 → tổng = 1 bar */
+      const aSet = ARPS[ci];
+      for (let s = 0; s < 8; s++) {
+        N(aSet[s % aSet.length],
+          t + s * bt * 0.5,
+          bt * 0.40,
+          s % 2 === 0 ? 0.028 : 0.014,
+          'sine');
+      }
+    });
+
+    /* Schedule loop tiếp theo, overlap 0.4s tránh gap */
+    _sched = setTimeout(() => loop(t0 + LOOP - 0.4), (LOOP - 0.9) * 1000);
+  }
+
+  loop(_ctx.currentTime + 0.1);
+}
+
+function stopBg() {
+  if (!_bgOn) return;
+  _bgOn = false;
+  if (_sched) clearTimeout(_sched);
+  /* Lưu ref local để startBg() mới gọi không conflict */
+  const ctx = _ctx, out = _out;
+  _ctx = null; _out = null;
+  if (out) out.gain.linearRampToValueAtTime(0, ctx.currentTime + 1.8); /* fade-out 1.8s */
+  setTimeout(() => { if (ctx) ctx.close(); }, 2600);
+}
+
+/* ════════════════════════════════════════════════
+   VOICE + BUTTON UI
+════════════════════════════════════════════════ */
+const audioEl = document.getElementById('audioEl');
+let voicePlaying = false;
+
+function setBtn(playing) {
+  const icon = document.getElementById('playIcon');
+  const bars = document.querySelectorAll('#wf span');
+  const hint = document.getElementById('aHint');
+  if (playing) {
+    icon.innerHTML = '<path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>';
+    bars.forEach((b, i) => {
+      b.style.opacity   = '1';
+      b.style.animation = `wv ${.5 + (i%5)*.07}s ${i*.04}s ease-in-out infinite`;
+    });
+    hint.textContent = 'Đang phát…';
+  } else {
+    icon.innerHTML = '<path d="M8 5.14v13.72L19 12 8 5.14z"/>';
+    bars.forEach(b => { b.style.opacity = '.4'; b.style.animation = ''; });
+    hint.textContent = _bgOn
+      ? '🎵 Nhạc nền đang phát — nhấn để tắt'
+      : 'Nghe trước khi chọn phòng nhé!';
+  }
+}
+
+function toggleAudio(e) {
+  e.stopPropagation();
+
+  /* Voice xong nhưng nhạc vẫn đang chạy → click = TẮT nhạc */
+  if (!voicePlaying && _bgOn) {
+    stopBg();
+    document.getElementById('aHint').textContent = 'Nghe trước khi chọn phòng nhé!';
+    setBtn(false);
+    return;
+  }
+
+  voicePlaying = !voicePlaying;
+
+  if (voicePlaying) {
+    audioEl.currentTime = 0;
+    audioEl.play().catch(() => {});
+    startBg();
+    setBtn(true);
+  } else {
+    /* Dừng giữa chừng → tắt cả */
+    audioEl.pause();
+    audioEl.currentTime = 0;
+    stopBg();
+    setBtn(false);
+  }
+}
+
+/* Voice kết thúc → nhạc nền tiếp tục chạy */
+function onAudioEnd() {
+  voicePlaying = false;
+  setBtn(false); /* _bgOn vẫn true, bg không bị stop */
 }
 </script>
 
