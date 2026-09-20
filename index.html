@@ -665,6 +665,7 @@ nav {
     </div>
 
     <audio id="audioEl" src="intro.mp3" preload="auto" onended="onAudioEnd()"></audio>
+    <audio id="bgEl" src="bg.mp3" preload="auto" loop></audio>
 
     <div class="hero-foot">
       <div class="tags">
@@ -949,78 +950,22 @@ function apply(t) {
   document.getElementById('themeIcon').textContent = t === 'light' ? '🌙' : '☀️';
 }
 
-let _ctx = null, _out = null, _sched = null, _bgOn = false;
+let _bgOn = false;
+const bgEl = document.getElementById('bgEl');
+bgEl.volume = 0.18;
 
 function startBg() {
   if (_bgOn) return;
   _bgOn = true;
-  _ctx = new (window.AudioContext || window.webkitAudioContext)();
-  _out = _ctx.createGain();
-  _out.gain.setValueAtTime(0, _ctx.currentTime);
-  _out.gain.linearRampToValueAtTime(0.20, _ctx.currentTime + 3);
-
-  const lpf = _ctx.createBiquadFilter();
-  lpf.type = 'lowpass'; lpf.frequency.value = 1050; lpf.Q.value = 0.5;
-  const dly = _ctx.createDelay(1.0); dly.delayTime.value = 0.42;
-  const dfb = _ctx.createGain(); dfb.gain.value = 0.28;
-  _out.connect(lpf);
-  lpf.connect(_ctx.destination);
-  lpf.connect(dly); dly.connect(dfb); dfb.connect(lpf);
-
-  function N(freq, start, dur, vol, type = 'sine') {
-    const osc = _ctx.createOscillator(), g = _ctx.createGain();
-    osc.type = type;
-    osc.frequency.value = freq;
-    osc.detune.value = (Math.random() - 0.5) * 8;
-    const att = Math.min(0.6, dur * 0.2);
-    g.gain.setValueAtTime(0, start);
-    g.gain.linearRampToValueAtTime(vol, start + att);
-    g.gain.setValueAtTime(vol * 0.80, start + dur * 0.72);
-    g.gain.linearRampToValueAtTime(0, start + dur);
-    osc.connect(g); g.connect(_out);
-    osc.start(start); osc.stop(start + dur + 0.1);
-  }
-
-  const BPM = 76, bt = 60 / BPM, bar = bt * 4;
-  const PADS = [
-    [ 98.00, 116.54, 146.83, 174.61 ],
-    [ 77.78,  98.00, 116.54, 146.83 ],
-    [ 65.41,  77.78,  98.00, 116.54 ],
-    [ 87.31, 110.00, 130.81, 155.56 ],
-  ];
-  const ARPS = [
-    [ 392.00, 466.16, 587.33, 466.16 ],
-    [ 311.13, 392.00, 493.88, 392.00 ],
-    [ 261.63, 311.13, 392.00, 311.13 ],
-    [ 349.23, 440.00, 523.25, 440.00 ],
-  ];
-
-  function loop(t0) {
-    const LOOP = bar * 4;
-    PADS.forEach((ch, ci) => {
-      const t = t0 + ci * bar;
-      ch.forEach((f, fi) => {
-        N(f, t, bar * 0.94, fi === 0 ? 0.16 : 0.046, fi === 0 ? 'triangle' : 'sine');
-      });
-      const aSet = ARPS[ci];
-      for (let s = 0; s < 8; s++) {
-        N(aSet[s % aSet.length], t + s * bt * 0.5, bt * 0.40,
-          s % 2 === 0 ? 0.028 : 0.014, 'sine');
-      }
-    });
-    _sched = setTimeout(() => loop(t0 + LOOP - 0.4), (LOOP - 0.9) * 1000);
-  }
-  loop(_ctx.currentTime + 0.1);
+  bgEl.currentTime = 0;
+  bgEl.play().catch(() => {});
 }
 
 function stopBg() {
   if (!_bgOn) return;
   _bgOn = false;
-  if (_sched) clearTimeout(_sched);
-  const ctx = _ctx, out = _out;
-  _ctx = null; _out = null;
-  if (out) out.gain.linearRampToValueAtTime(0, ctx.currentTime + 1.8);
-  setTimeout(() => { if (ctx) ctx.close(); }, 2600);
+  bgEl.pause();
+  bgEl.currentTime = 0;
 }
 
 const audioEl = document.getElementById('audioEl');
