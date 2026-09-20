@@ -324,6 +324,32 @@ html,body{height:100%;font-family:'DM Sans',system-ui,sans-serif;color:#12103D;o
 <body>
 <div class="bg"></div>
 
+<!-- ══════════ WELCOME OVERLAY ══════════ -->
+<div id="welcomeOverlay" style="display:none">
+  <div class="wcard">
+    <span class="wcard-icon">🐑</span>
+    <h2>Chào mừng đến POP-AI!</h2>
+    <p class="wcard-sub">Đặt nickname để bắt đầu học.<br>Tên này sẽ hiện trên bảng thi đua của bạn nhé!</p>
+
+    <div class="winput-wrap">
+      <input type="text" id="wInput" class="winput"
+        placeholder="Nickname của bạn..."
+        maxlength="20" autocomplete="off"
+        oninput="onNickInput()"
+        onkeydown="if(event.key==='Enter') confirmNick()">
+      <span class="wcheck" id="wCheck"></span>
+    </div>
+    <div class="wstatus info" id="wStatus">Nhập tên để kiểm tra...</div>
+
+    <div class="wsuggest" id="wSuggestBox" style="display:none">
+      <div class="wsuggest-lbl">GỢI Ý CÓ THỂ DÙNG</div>
+      <div class="wsuggest-chips" id="wChips"></div>
+    </div>
+
+    <button class="wbtn" id="wBtn" onclick="confirmNick()" disabled>Vào học thôi! →</button>
+  </div>
+</div>
+
 <!-- ══════════ LOBBY ══════════ -->
 <div id="lobby">
   <nav class="topbar">
@@ -984,9 +1010,9 @@ function checkAndShowWelcome() {
   const existing = localStorage.getItem('popai-nickname');
   if (!existing) {
     document.getElementById('welcomeOverlay').style.display = 'flex';
+    document.getElementById('lobby').style.display = 'none';
   } else {
-    // Still register in case they used it before this feature existed
-    registerNick(existing);
+    registerNick(existing); // register if came before this feature
     bootLobby();
   }
 }
@@ -1001,32 +1027,5 @@ function bootLobby() {
 /* ─── BOOT ─── */
 checkAndShowWelcome();
 </script>
-
-<!-- ══════════ WELCOME OVERLAY ══════════ -->
-<div id="welcomeOverlay" style="display:none">
-  <div class="wcard">
-    <span class="wcard-icon">🐑</span>
-    <h2>Chào mừng đến POP-AI!</h2>
-    <p class="wcard-sub">Đặt nickname để bắt đầu học.<br>Tên này sẽ hiện trên bảng thi đua của bạn nhé!</p>
-
-    <div class="winput-wrap">
-      <input type="text" id="wInput" class="winput"
-        placeholder="Nickname của bạn..."
-        maxlength="20" autocomplete="off"
-        oninput="onNickInput()"
-        onkeydown="if(event.key==='Enter') confirmNick()">
-      <span class="wcheck" id="wCheck"></span>
-    </div>
-    <div class="wstatus info" id="wStatus">Nhập tên để kiểm tra...</div>
-
-    <div class="wsuggest" id="wSuggestBox" style="display:none">
-      <div class="wsuggest-lbl">GỢI Ý CÓ THỂ DÙNG</div>
-      <div class="wsuggest-chips" id="wChips"></div>
-    </div>
-
-    <button class="wbtn" id="wBtn" onclick="confirmNick()" disabled>Vào học thôi! →</button>
-  </div>
-</div>
-
 </body>
 </html>
