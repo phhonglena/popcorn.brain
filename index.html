@@ -931,66 +931,6 @@ nav {
 ══════════════════════════════════════════════════════ -->
 <script>
 /* ── Waveform bars ── */
-(function(){
-  const wf = document.getElementById('wf');
-  [8,14,11,22,17,27,13,21,16,25,11,19].forEach(h => {
-    const b = document.createElement('span');
-    b.style.height = h + 'px';
-    wf.appendChild(b);
-  });
-})();
-
-/* ── Theme ── */
-(function init(){
-  const saved = localStorage.getItem('popai-theme') || 'light';
-  apply(saved);
-})();
-
-function toggleTheme() {
-  const cur = document.documentElement.getAttribute('data-theme');
-  apply(cur === 'dark' ? 'light' : 'dark');
-}
-
-function apply(t) {
-  document.documentElement.setAttribute('data-theme', t);
-  localStorage.setItem('popai-theme', t);
-  document.getElementById('themeIcon').textContent = t === 'light' ? '🌙' : '☀️';
-}
-
-/* ── Audio ── */
-let playing = false;
-const audioEl = document.getElementById('audioEl');
-
-function toggleAudio(e) {
-  e.stopPropagation();
-  playing = !playing;
-  const icon = document.getElementById('playIcon');
-  const bars = document.querySelectorAll('#wf span');
-  const hint = document.getElementById('aHint');
-  if (playing) {
-    icon.innerHTML = '<path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>';
-    bars.forEach((b,i) => {
-      b.style.opacity = '1';
-      b.style.animation = `wv ${.5+(i%5)*.07}s ${i*.04}s ease-in-out infinite`;
-    });
-    hint.textContent = 'Đang phát…';
-    if (audioEl.src && audioEl.src !== location.href) audioEl.play().catch(()=>{});
-  } else {
-    icon.innerHTML = '<path d="M8 5.14v13.72L19 12 8 5.14z"/>';
-    bars.forEach(b => { b.style.opacity = '.4'; b.style.animation = ''; });
-    hint.textContent = 'Nghe trước khi chọn phòng nhé!';
-    audioEl.pause();
-  }
-}
-
-function onAudioEnd() {
-  playing = false;
-  document.getElementById('playIcon').innerHTML = '<path d="M8 5.14v13.72L19 12 8 5.14z"/>';
-  document.querySelectorAll('#wf span').forEach(b => { b.style.opacity = '.4'; b.style.animation = ''; });
-  document.getElementById('aHint').textContent = 'Nghe trước khi chọn phòng nhé!';
-}
-<script>
-/* ── Waveform bars ── */
 (function () {
   const wf = document.getElementById('wf');
   [8,14,11,22,17,27,13,21,16,25,11,19].forEach(h => {
@@ -1013,8 +953,6 @@ function apply(t) {
 
 /* ════════════════════════════════════════════════
    BG MUSIC — Web Audio API, không cần file
-   Lo-fi loop 76 BPM: Gm7 → Ebmaj7 → Cm7 → F7
-   Pad (sine) + Bass (triangle) + Arpeggio + Tape echo
 ════════════════════════════════════════════════ */
 let _ctx = null, _out = null, _sched = null, _bgOn = false;
 
@@ -1025,25 +963,22 @@ function startBg() {
 
   _out = _ctx.createGain();
   _out.gain.setValueAtTime(0, _ctx.currentTime);
-  _out.gain.linearRampToValueAtTime(0.20, _ctx.currentTime + 3); /* fade-in 3s */
+  _out.gain.linearRampToValueAtTime(0.20, _ctx.currentTime + 3);
 
-  /* Lowpass filter — cắt treble cho ấm */
   const lpf = _ctx.createBiquadFilter();
   lpf.type = 'lowpass'; lpf.frequency.value = 1050; lpf.Q.value = 0.5;
 
-  /* Tape echo (delay feedback) */
   const dly = _ctx.createDelay(1.0); dly.delayTime.value = 0.42;
   const dfb = _ctx.createGain(); dfb.gain.value = 0.28;
   _out.connect(lpf);
   lpf.connect(_ctx.destination);
   lpf.connect(dly); dly.connect(dfb); dfb.connect(lpf);
 
-  /* Phát 1 note tổng hợp */
   function N(freq, start, dur, vol, type = 'sine') {
     const osc = _ctx.createOscillator(), g = _ctx.createGain();
     osc.type = type;
     osc.frequency.value = freq;
-    osc.detune.value = (Math.random() - 0.5) * 8; /* humanise nhẹ */
+    osc.detune.value = (Math.random() - 0.5) * 8;
     const att = Math.min(0.6, dur * 0.2);
     g.gain.setValueAtTime(0, start);
     g.gain.linearRampToValueAtTime(vol, start + att);
@@ -1053,49 +988,34 @@ function startBg() {
     osc.start(start); osc.stop(start + dur + 0.1);
   }
 
-  const BPM = 76, bt = 60 / BPM, bar = bt * 4; /* 1 bar ≈ 3.16s */
+  const BPM = 76, bt = 60 / BPM, bar = bt * 4;
 
-  /* Pad chords: 4 note mỗi chord, note đầu = bass (triangle) */
   const PADS = [
-    /* Gm7    */ [ 98.00, 116.54, 146.83, 174.61 ],
-    /* Ebmaj7 */ [ 77.78,  98.00, 116.54, 146.83 ],
-    /* Cm7    */ [ 65.41,  77.78,  98.00, 116.54 ],
-    /* F7     */ [ 87.31, 110.00, 130.81, 155.56 ],
+    [  98.00, 116.54, 146.83, 174.61 ],
+    [  77.78,  98.00, 116.54, 146.83 ],
+    [  65.41,  77.78,  98.00, 116.54 ],
+    [  87.31, 110.00, 130.81, 155.56 ],
   ];
-
-  /* Arpeggio: high register, 4 note lặp qua 8 eighth-note steps = 1 bar */
   const ARPS = [
-    /* Gm7    */ [ 392.00, 466.16, 587.33, 466.16 ],
-    /* Ebmaj7 */ [ 311.13, 392.00, 493.88, 392.00 ],
-    /* Cm7    */ [ 261.63, 311.13, 392.00, 311.13 ],
-    /* F7     */ [ 349.23, 440.00, 523.25, 440.00 ],
+    [ 392.00, 466.16, 587.33, 466.16 ],
+    [ 311.13, 392.00, 493.88, 392.00 ],
+    [ 261.63, 311.13, 392.00, 311.13 ],
+    [ 349.23, 440.00, 523.25, 440.00 ],
   ];
 
   function loop(t0) {
     const LOOP = bar * 4;
-
     PADS.forEach((ch, ci) => {
       const t = t0 + ci * bar;
-
-      /* Pad */
       ch.forEach((f, fi) => {
-        N(f, t, bar * 0.94,
-          fi === 0 ? 0.16 : 0.046,
-          fi === 0 ? 'triangle' : 'sine');
+        N(f, t, bar * 0.94, fi === 0 ? 0.16 : 0.046, fi === 0 ? 'triangle' : 'sine');
       });
-
-      /* Arpeggio: 8 eighth notes, mỗi step = bt/2 → tổng = 1 bar */
       const aSet = ARPS[ci];
       for (let s = 0; s < 8; s++) {
-        N(aSet[s % aSet.length],
-          t + s * bt * 0.5,
-          bt * 0.40,
-          s % 2 === 0 ? 0.028 : 0.014,
-          'sine');
+        N(aSet[s % aSet.length], t + s * bt * 0.5, bt * 0.40,
+          s % 2 === 0 ? 0.028 : 0.014, 'sine');
       }
     });
-
-    /* Schedule loop tiếp theo, overlap 0.4s tránh gap */
     _sched = setTimeout(() => loop(t0 + LOOP - 0.4), (LOOP - 0.9) * 1000);
   }
 
@@ -1106,10 +1026,9 @@ function stopBg() {
   if (!_bgOn) return;
   _bgOn = false;
   if (_sched) clearTimeout(_sched);
-  /* Lưu ref local để startBg() mới gọi không conflict */
   const ctx = _ctx, out = _out;
   _ctx = null; _out = null;
-  if (out) out.gain.linearRampToValueAtTime(0, ctx.currentTime + 1.8); /* fade-out 1.8s */
+  if (out) out.gain.linearRampToValueAtTime(0, ctx.currentTime + 1.8);
   setTimeout(() => { if (ctx) ctx.close(); }, 2600);
 }
 
@@ -1142,7 +1061,6 @@ function setBtn(playing) {
 function toggleAudio(e) {
   e.stopPropagation();
 
-  /* Voice xong nhưng nhạc vẫn đang chạy → click = TẮT nhạc */
   if (!voicePlaying && _bgOn) {
     stopBg();
     document.getElementById('aHint').textContent = 'Nghe trước khi chọn phòng nhé!';
@@ -1158,7 +1076,6 @@ function toggleAudio(e) {
     startBg();
     setBtn(true);
   } else {
-    /* Dừng giữa chừng → tắt cả */
     audioEl.pause();
     audioEl.currentTime = 0;
     stopBg();
@@ -1166,10 +1083,9 @@ function toggleAudio(e) {
   }
 }
 
-/* Voice kết thúc → nhạc nền tiếp tục chạy */
 function onAudioEnd() {
   voicePlaying = false;
-  setBtn(false); /* _bgOn vẫn true, bg không bị stop */
+  setBtn(false);
 }
 </script>
 
