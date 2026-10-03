@@ -402,7 +402,14 @@ async function doReflect(){
     document.getElementById('remp').innerHTML=fmt(e);
     document.getElementById('rguid').innerHTML=fmtGuide(g);
     cards.classList.add('on');
-  }catch(err){alert('Có lỗi, thử lại nhé!');console.error(err);}
+  }catch(err){
+    if(err.name==='AbortError'){
+      alert('Server đang ngủ, đang khởi động lại... Nhấn Gửi thêm lần nữa sau 30 giây nhé! 🙏');
+    } else {
+      alert('Có lỗi kết nối, thử lại sau ít giây nhé!');
+    }
+    console.error(err);
+  }
   ld.classList.remove('on');
   btn.disabled=false;
 }
@@ -448,24 +455,23 @@ function showTy(){
 function rmTy(id){const e=document.getElementById(id);if(e)e.remove();}
 
 async function api(msgs){
-  const r = await fetch('https://popai-web-backend.onrender.com/api/chat', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({
-      messages: msgs,
-      system: SYS
-    })
-  });
-
-  const d = await r.json();
-
-  if (!r.ok) {
-    throw new Error(d.error || 'API ' + r.status);
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 60000);
+  try {
+    const r = await fetch('https://popai-web-backend.onrender.com/api/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ messages: msgs, system: SYS }),
+      signal: controller.signal
+    });
+    clearTimeout(timeout);
+    const d = await r.json();
+    if (!r.ok) throw new Error(d.error || 'API ' + r.status);
+    return d.text;
+  } catch(e) {
+    clearTimeout(timeout);
+    throw e;
   }
-
-  return d.text;
 }
 
 function cEnter(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendChat();}}
