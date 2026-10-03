@@ -382,6 +382,7 @@ function goR(){
 }
 function goC(){
   ss('scht');
+   fetch('https://popai-web-backend.onrender.com').catch(()=>{});
   if(!cinit){cinit=true;setTimeout(welcome,700);}
 }
 
@@ -430,7 +431,7 @@ async function sendChat(){
   try{
     const r=await api([...hist]);
     rmTy(tid);addM('ai',r);hist.push({role:'assistant',content:r});
-  }catch(e){rmTy(tid);addM('ai','Mình gặp chút lỗi kỹ thuật. Bạn nhắn lại nhé.');}
+}catch(e){rmTy(tid);addM('ai',e.name==='AbortError'?'Server đang khởi động, thử lại sau 30 giây nhé 🙏':'Mình gặp chút lỗi kỹ thuật. Bạn nhắn lại nhé.');}
   busy=false;document.getElementById('chbtn').disabled=false;
 }
 
