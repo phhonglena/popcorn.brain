@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Điểm Hẹn — Đăng nhập</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700;800&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;font-family:'DM Sans',system-ui,sans-serif;background:#FBF5EE}
+
+.orb{position:fixed;border-radius:50%;filter:blur(110px);pointer-events:none;z-index:0}
+.orb-1{width:520px;height:520px;top:-100px;right:-60px;background:#0C5D7B;opacity:.12}
+.orb-2{width:400px;height:400px;bottom:30px;left:-90px;background:#12103D;opacity:.08}
+.orb-3{width:260px;height:260px;top:36%;right:6%;background:#F20231;opacity:.07}
+
+.page{
+  position:relative;z-index:1;
+  min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;
+}
+
+.card{
+  background:rgba(255,255,255,.92);
+  backdrop-filter:blur(20px) saturate(1.6);-webkit-backdrop-filter:blur(20px) saturate(1.6);
+  border:1px solid rgba(18,16,61,.10);border-radius:24px;
+  padding:42px 36px 32px;width:100%;max-width:400px;
+  box-shadow:0 24px 64px rgba(18,16,61,.15);
+  animation:up .36s cubic-bezier(.22,1,.36,1);
+}
+@keyframes up{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:none}}
+
+/* Logo */
+.logo{display:flex;align-items:center;gap:8px;margin-bottom:30px;text-decoration:none}
+.logo-e{font-size:1.35rem}
+.logo-t{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:1.05rem;color:#12103D}
+.logo-s{font-size:.68rem;font-weight:500;color:#4A4280;margin-left:3px}
+
+/* Title */
+h1{font-family:'Space Grotesk',sans-serif;font-size:2rem;font-weight:800;letter-spacing:-.055em;color:#12103D;line-height:.92;margin-bottom:6px}
+.sub{font-size:.85rem;color:#4A4280;margin-bottom:24px;line-height:1.55}
+
+/* Returning user badge */
+.wb{
+  display:none;align-items:center;gap:11px;
+  padding:11px 14px;border-radius:12px;
+  background:rgba(7,196,150,.10);border:1px solid rgba(7,196,150,.22);
+  margin-bottom:18px;
+}
+.wb-av{font-size:1.5rem;flex-shrink:0;line-height:1}
+.wb-name{font-size:.86rem;font-weight:700;color:#05916D;display:block}
+.wb-hint{font-size:.72rem;color:#4A4280;margin-top:1px}
+
+/* Form fields */
+.fld{margin-bottom:15px}
+.lbl{font-size:.68rem;font-weight:700;letter-spacing:.07em;color:#4A4280;display:block;margin-bottom:6px}
+.inp{
+  width:100%;padding:11px 14px;
+  border:1.5px solid rgba(18,16,61,.12);border-radius:11px;
+  font-family:'DM Sans',sans-serif;font-size:.92rem;color:#12103D;
+  background:rgba(255,255,255,.65);outline:none;
+  transition:border-color .15s,box-shadow .15s,background .15s;
+}
+.inp:focus{border-color:#12103D;box-shadow:0 0 0 3px rgba(18,16,61,.07);background:#fff}
+.inp.e{border-color:#F20231;box-shadow:0 0 0 3px rgba(242,2,49,.07)}
+.pw-w{position:relative}
+.eye{position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:#4A4280;font-size:.82rem;padding:3px;line-height:1}
+.em{font-size:.72rem;color:#C0001E;margin-top:4px;min-height:16px;display:block}
+
+/* Avatar picker (new users only) */
+.av-sec{display:none;margin-bottom:16px}
+.av-lbl{font-size:.68rem;font-weight:700;letter-spacing:.07em;color:#4A4280;display:block;margin-bottom:9px}
+.av-g{display:flex;flex-wrap:wrap;gap:7px}
+.av-o{
+  width:40px;height:40px;border-radius:50%;
+  border:2px solid rgba(18,16,61,.10);background:rgba(255,255,255,.6);
+  font-size:1.25rem;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  transition:all .12s;
+}
+.av-o:hover{border-color:rgba(18,16,61,.3);transform:scale(1.08)}
+.av-o.on{border-color:#12103D;box-shadow:0 0 0 3px rgba(18,16,61,.12);background:#fff;transform:scale(1.05)}
+
+/* Login button */
+.btn{
+  width:100%;padding:12px;
+  background:#12103D;color:#fff;border:none;border-radius:12px;
+  font-family:'Space Grotesk',sans-serif;font-size:.95rem;font-weight:700;
+  cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;
+  transition:all .15s;margin-top:4px;
+}
+.btn:hover{background:#221E80;transform:translateY(-1px);box-shadow:0 8px 24px rgba(18,16,61,.28)}
+.btn:disabled{opacity:.45;cursor:not-allowed;transform:none;box-shadow:none}
+.bsp{
+  display:none;width:15px;height:15px;
+  border:2px solid rgba(255,255,255,.3);border-top-color:#fff;
+  border-radius:50%;animation:rot .65s linear infinite;flex-shrink:0;
+}
+@keyframes rot{to{transform:rotate(360deg)}}
+
+/* Footer */
+.ft{text-align:center;font-size:.73rem;color:#4A4280;margin-top:16px;line-height:1.65}
+.ft b{color:#12103D;font-weight:700}
+
+/* Admin link */
+.sep{display:flex;align-items:center;gap:10px;margin:16px 0 0;font-size:.68rem;color:rgba(18,16,61,.35)}
+.sep::before,.sep::after{content:'';flex:1;height:1px;background:rgba(18,16,61,.09)}
+.al{
+  display:block;text-align:center;padding:9px;margin-top:8px;
+  font-size:.78rem;color:#4A4280;text-decoration:none;
+  border-radius:9px;border:1px solid rgba(18,16,61,.08);
+  transition:all .13s;
+}
+.al:hover{background:rgba(18,16,61,.05);color:#12103D;border-color:rgba(18,16,61,.18)}
+
+@media(max-width:480px){
+  .page{padding:16px}
+  .card{padding:30px 20px 24px;border-radius:18px}
+  h1{font-size:1.7rem}
+}
+</style>
+</head>
+<body>
+<div class="orb orb-1"></div>
+<div class="orb orb-2"></div>
+<div class="orb orb-3"></div>
+
+<div class="page">
+<div class="card">
+
+  <a href="index.html" class="logo">
+    <span class="logo-e">🍿</span>
+    <span class="logo-t">Điểm Hẹn<span class="logo-s"> · KHKT 2026</span></span>
+  </a>
+
+  <!-- Badge: returning user -->
+  <div class="wb" id="wb">
+    <div class="wb-av" id="wbAv">🌸</div>
+    <div>
+      <span class="wb-name" id="wbN">Lena</span>
+      <span class="wb-hint">Chào lại! Nhập mật khẩu để tiếp tục.</span>
+    </div>
+  </div>
+
+  <h1>Đăng nhập</h1>
+  <p class="sub">Tên tài khoản = tên Gmail của bạn (không cần @gmail.com).</p>
+
+  <!-- Username -->
+  <div class="fld">
+    <label class="lbl" for="ui">TÊN TÀI KHOẢN</label>
+    <input id="ui" class="inp" type="text"
+      placeholder="vd: lena, phhonglena, anna2k9..."
+      maxlength="30" autocomplete="username" autocapitalize="none" spellcheck="false"
+      oninput="onU()" onkeydown="onK(event)">
+    <span class="em" id="uM"></span>
+  </div>
+
+  <!-- Password -->
+  <div class="fld">
+    <label class="lbl" for="pi">MẬT KHẨU</label>
+    <div class="pw-w">
+      <input id="pi" class="inp" type="password"
+        placeholder="Nhập mật khẩu..."
+        autocomplete="current-password"
+        onkeydown="onK(event)">
+      <button class="eye" type="button" id="eyeB" onclick="tglPw()">👁</button>
+    </div>
+    <span class="em" id="pM"></span>
+  </div>
+
+  <!-- Avatar picker: only shown for new accounts -->
+  <div class="av-sec" id="avSec">
+    <div class="av-lbl">CHỌN AVATAR (chỉ lần đầu đăng ký)</div>
+    <div class="av-g" id="avG"></div>
+  </div>
+
+  <!-- Login button -->
+  <button class="btn" id="loginBtn" onclick="doLogin()">
+    <div class="bsp" id="bsp"></div>
+    <span id="bL">Đăng nhập →</span>
+  </button>
+
+  <p class="ft">
+    Mật khẩu mặc định: <b>123</b><br>
+    Lần đầu đăng nhập sẽ tự động tạo tài khoản.
+  </p>
+
+  <div class="sep">dành cho quản trị</div>
+  <a href="admin.html" class="al">🔐 Admin Dashboard</a>
+
+</div>
+</div>
+
+<script>
+/* ── Constants ── */
+const AK = 'popai-accounts';
+const SK = 'popai-session';
+const PW = '123';             // mật khẩu chung cho tất cả học sinh
+const AU = 'admin';
+const AP = 'admin123';        // mật khẩu admin riêng
+const AVS = ['🌸','🌿','⭐','🍀','🌙','🦋','🐬','🎯','🔮','🌈','🦄','🍵','🎨','📚','🚀',
+              '🐱','🐸','🦊','🐧','🌊','🎪','🎭','🎸','🌺','🍄','🐻','🦁','🐼','🦖','🌻'];
+let sAv = null;
+
+/* ── Auto-redirect if already logged in ── */
+(function () {
+  try {
+    const s = JSON.parse(localStorage.getItem(SK) || 'null');
+    if (s && s.username && (!s.expires || Date.now() < s.expires)) {
+      window.location.replace(s.isAdmin ? 'admin.html' : (new URLSearchParams(location.search).get('r') || 'index.html'));
+    }
+  } catch (e) {}
+})();
+
+/* ── Build avatar grid ── */
+(function () {
+  const g = document.getElementById('avG');
+  AVS.forEach((em, i) => {
+    const b = document.createElement('button');
+    b.type = 'button'; b.className = 'av-o'; b.textContent = em;
+    b.addEventListener('click', () => {
+      document.querySelectorAll('.av-o').forEach(x => x.classList.remove('on'));
+      b.classList.add('on'); sAv = em;
+    });
+    g.appendChild(b);
+    if (i === 0) { b.classList.add('on'); sAv = em; }
+  });
+})();
+
+/* ── Helpers ── */
+function ga() { try { return JSON.parse(localStorage.getItem(AK) || '{}'); } catch(e) { return {}; } }
+function sa(a) { localStorage.setItem(AK, JSON.stringify(a)); }
+function setS(s) { localStorage.setItem(SK, JSON.stringify(s)); }
+function fmtN(u) { return u.replace(/[._-]/g, ' ').replace(/\b\w/g, c => c.toUpperCase()); }
+function logA(u, t, d = {}) {
+  try {
+    const l = JSON.parse(localStorage.getItem('popai-activity') || '[]');
+    l.unshift({ u, t, d, ts: Date.now() });
+    if (l.length > 2000) l.splice(2000);
+    localStorage.setItem('popai-activity', JSON.stringify(l));
+  } catch (e) {}
+}
+
+/* ── Username input: show returning-user badge or avatar picker ── */
+function onU() {
+  const v = document.getElementById('ui').value.trim().toLowerCase();
+  document.getElementById('uM').textContent = '';
+  document.getElementById('ui').classList.remove('e');
+  const a = ga();
+  const wb = document.getElementById('wb');
+  const avSec = document.getElementById('avSec');
+
+  if (v && a[v]) {
+    // Returning user
+    wb.style.display = 'flex';
+    document.getElementById('wbAv').textContent = a[v].avatar || '👤';
+    document.getElementById('wbN').textContent = a[v].displayName || v;
+    avSec.style.display = 'none';
+    sAv = a[v].avatar;
+  } else if (v) {
+    // New user — show avatar picker
+    wb.style.display = 'none';
+    avSec.style.display = 'block';
+    // Auto-highlight default avatar
+    const def = AVS[v.charCodeAt(0) % AVS.length];
+    sAv = def;
+    document.querySelectorAll('.av-o').forEach(b => b.classList.toggle('on', b.textContent === def));
+  } else {
+    wb.style.display = 'none';
+    avSec.style.display = 'none';
+    sAv = null;
+  }
+}
+
+/* ── Toggle password visibility ── */
+function tglPw() {
+  const i = document.getElementById('pi');
+  i.type = i.type === 'password' ? 'text' : 'password';
+  document.getElementById('eyeB').textContent = i.type === 'password' ? '👁' : '🙈';
+}
+
+/* ── Enter key ── */
+function onK(e) { if (e.key === 'Enter') doLogin(); }
+
+/* ── Main login logic ── */
+function doLogin() {
+  const ui = document.getElementById('ui');
+  const pi = document.getElementById('pi');
+  const uM = document.getElementById('uM');
+  const pM = document.getElementById('pM');
+  const btn = document.getElementById('loginBtn');
+  const sp = document.getElementById('bsp');
+  const bL = document.getElementById('bL');
+
+  let u = ui.value.trim().toLowerCase();
+  let p = pi.value;
+
+  // Reset errors
+  [ui, pi].forEach(x => x.classList.remove('e'));
+  uM.textContent = ''; pM.textContent = '';
+
+  // Validate
+  if (!u) { ui.classList.add('e'); uM.textContent = 'Vui lòng nhập tên tài khoản.'; ui.focus(); return; }
+  if (u.length < 2) { ui.classList.add('e'); uM.textContent = 'Tên tối thiểu 2 ký tự.'; return; }
+  if (!p) { pi.classList.add('e'); pM.textContent = 'Vui lòng nhập mật khẩu.'; pi.focus(); return; }
+
+  // Show loading
+  btn.disabled = true; sp.style.display = 'block'; bL.textContent = 'Đang vào...';
+
+  setTimeout(() => {
+    // Admin login
+    if (u === AU && p === AP) {
+      setS({ username: 'admin', isAdmin: true, loginAt: Date.now(), expires: Date.now() + 7 * 864e5 });
+      window.location.replace('admin.html');
+      return;
+    }
+
+    // Wrong password
+    if (p !== PW) {
+      pi.classList.add('e');
+      pM.textContent = 'Mật khẩu không đúng!';
+      btn.disabled = false; sp.style.display = 'none'; bL.textContent = 'Đăng nhập →';
+      pi.select(); pi.focus();
+      return;
+    }
+
+    // Create or update account
+    const accs = ga();
+    const av = sAv || AVS[u.charCodeAt(0) % AVS.length];
+    const now = Date.now();
+
+    if (!accs[u]) {
+      accs[u] = {
+        username: u,
+        displayName: fmtN(u),
+        avatar: av,
+        createdAt: now,
+        lastLogin: now,
+        loginCount: 1,
+        totalBlocks: 0,
+        totalMinutes: 0
+      };
+    } else {
+      accs[u].lastLogin = now;
+      accs[u].loginCount = (accs[u].loginCount || 0) + 1;
+      if (sAv && sAv !== accs[u].avatar) accs[u].avatar = sAv;
+    }
+    sa(accs);
+
+    // Sync legacy keys so room4.html works unchanged
+    localStorage.setItem('popai-nickname', u);
+    localStorage.setItem('popai-avatar', accs[u].avatar);
+    localStorage.setItem('popai-av-' + u, accs[u].avatar);
+
+    // Log activity
+    logA(u, 'login', { loginCount: accs[u].loginCount });
+
+    // Set session (7 days)
+    setS({
+      username: u,
+      isAdmin: false,
+      loginAt: now,
+      expires: now + 7 * 864e5,
+      avatar: accs[u].avatar,
+      displayName: accs[u].displayName
+    });
+
+    // Redirect
+    const red = new URLSearchParams(location.search).get('r') || 'index.html';
+    window.location.replace(red);
+  }, 500);
+}
+</script>
+</body>
+</html>
