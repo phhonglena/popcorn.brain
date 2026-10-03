@@ -1028,7 +1028,16 @@ function bootLobby() {
 }
 
 /* ─── BOOT ─── */
-checkAndShowWelcome();
+/* ── Auth check — redirect nếu chưa đăng nhập ── */
+(function(){
+  try{
+    var s=JSON.parse(localStorage.getItem('popai-session')||'null');
+    if(!s||!s.username||s.isAdmin||(s.expires&&Date.now()>s.expires)){
+      window.location.replace('login.html?r=room4.html'); return;
+    }
+  }catch(e){ window.location.replace('login.html?r=room4.html'); return; }
+})();
+bootLobby(); /* Vào thẳng lobby, bỏ qua màn welcome overlay */
 </script>
 </body>
 </html>
