@@ -1,0 +1,612 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin Dashboard — Điểm Hẹn</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700;800&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{font-family:'DM Sans',system-ui,sans-serif;background:#F0EDE8;color:#12103D}
+
+/* ── GATE ── */
+.gate{position:fixed;inset:0;z-index:500;display:flex;align-items:center;justify-content:center;background:#FBF5EE;padding:20px}
+.gate-card{background:#fff;border:1px solid rgba(18,16,61,.10);border-radius:20px;padding:38px 32px 28px;width:100%;max-width:360px;box-shadow:0 20px 50px rgba(18,16,61,.13);animation:popIn .32s cubic-bezier(.22,1,.36,1)}
+@keyframes popIn{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
+.gate-icon{font-size:2.2rem;text-align:center;display:block;margin-bottom:12px}
+.gate-title{font-family:'Space Grotesk',sans-serif;font-weight:800;font-size:1.5rem;letter-spacing:-.04em;color:#12103D;text-align:center;margin-bottom:4px}
+.gate-sub{font-size:.82rem;color:#4A4280;text-align:center;margin-bottom:22px}
+.gi{width:100%;padding:10px 13px;margin-bottom:10px;border:1.5px solid rgba(18,16,61,.12);border-radius:10px;font-family:'DM Sans',sans-serif;font-size:.9rem;color:#12103D;background:rgba(255,255,255,.7);outline:none;transition:border-color .15s}
+.gi:focus{border-color:#12103D}
+.gi.e{border-color:#F20231}
+.gate-err{font-size:.74rem;color:#C0001E;min-height:16px;display:block;margin-bottom:8px;text-align:center}
+.gate-btn{width:100%;padding:11px;background:#12103D;color:#fff;border:none;border-radius:10px;font-family:'Space Grotesk',sans-serif;font-size:.92rem;font-weight:700;cursor:pointer;transition:all .14s}
+.gate-btn:hover{background:#221E80;transform:translateY(-1px);box-shadow:0 6px 18px rgba(18,16,61,.28)}
+.gate-back{display:block;text-align:center;margin-top:14px;font-size:.77rem;color:#4A4280;text-decoration:none}
+.gate-back:hover{color:#12103D}
+
+/* ── DASHBOARD ── */
+#dash{display:none;flex-direction:column;min-height:100vh}
+.topbar{height:54px;display:flex;align-items:center;justify-content:space-between;padding:0 24px;background:rgba(255,255,255,.97);border-bottom:1.5px solid rgba(18,16,61,.10);box-shadow:0 2px 12px rgba(18,16,61,.08);position:sticky;top:0;z-index:100}
+.t-logo{display:flex;align-items:center;gap:8px;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:1rem;color:#12103D;text-decoration:none}
+.t-badge{padding:3px 9px;border-radius:18px;background:rgba(242,2,49,.10);color:#C0001E;font-size:.7rem;font-weight:700;letter-spacing:.05em;margin-left:6px}
+.t-right{display:flex;align-items:center;gap:12px}
+.t-time{font-size:.78rem;color:#4A4280;font-weight:500}
+.t-logout{padding:6px 14px;border-radius:18px;border:1.5px solid rgba(18,16,61,.12);background:none;font-family:inherit;font-size:.8rem;color:#4A4280;cursor:pointer;transition:all .13s}
+.t-logout:hover{background:rgba(242,2,49,.08);color:#C0001E;border-color:rgba(242,2,49,.2)}
+.body{padding:20px 24px 40px;flex:1}
+
+/* ── Period banner ── */
+.period-banner{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;background:linear-gradient(135deg,#12103D 0%,#2B27A0 100%);border-radius:14px;padding:16px 22px;margin-bottom:16px}
+.pb-left .pb-title{font-family:'Space Grotesk',sans-serif;font-size:1.05rem;font-weight:800;color:#fff;letter-spacing:-.03em}
+.pb-left .pb-sub{font-size:.75rem;color:rgba(255,255,255,.6);margin-top:3px}
+.pb-badge{padding:5px 14px;border-radius:20px;background:rgba(255,255,255,.12);color:rgba(255,255,255,.88);font-size:.73rem;font-weight:700;letter-spacing:.05em;border:1px solid rgba(255,255,255,.22);white-space:nowrap}
+
+/* ── Sim note ── */
+.sim-note{display:flex;align-items:flex-start;gap:10px;background:rgba(255,176,60,.10);border:1px solid rgba(255,176,60,.28);border-radius:12px;padding:11px 15px;margin-bottom:18px;font-size:.78rem;line-height:1.65;color:#6B4400}
+
+/* ── Stats ── */
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:18px}
+.stat{background:#fff;border:1px solid rgba(18,16,61,.07);border-radius:14px;padding:16px 18px;box-shadow:0 2px 8px rgba(18,16,61,.06)}
+.stat-icon{font-size:1.4rem;margin-bottom:8px;display:block}
+.stat-val{font-family:'Space Grotesk',sans-serif;font-size:2rem;font-weight:800;letter-spacing:-.05em;color:#12103D;display:block;line-height:1}
+.stat-label{font-size:.72rem;color:#4A4280;font-weight:600;letter-spacing:.03em;margin-top:4px;display:block}
+.stat-sub{font-size:.67rem;color:#4A4280;margin-top:2px;display:block;opacity:.75}
+
+/* ── Panel ── */
+.panel{background:#fff;border:1px solid rgba(18,16,61,.07);border-radius:14px;overflow:hidden;box-shadow:0 2px 8px rgba(18,16,61,.05)}
+.panel-head{display:flex;align-items:center;justify-content:space-between;padding:13px 18px 11px;border-bottom:1px solid rgba(18,16,61,.07)}
+.panel-title{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:.92rem;color:#12103D;display:flex;align-items:center;gap:7px}
+.dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.d-y{background:#FFB03C;box-shadow:0 0 5px rgba(255,176,60,.5)}
+.d-b{background:#3A86FF;box-shadow:0 0 5px rgba(58,134,255,.5)}
+.d-p{background:#FF6B9D;box-shadow:0 0 5px rgba(255,107,157,.5)}
+.d-g{background:#07C496;box-shadow:0 0 5px rgba(7,196,150,.5)}
+.panel-actions{display:flex;gap:7px;align-items:center}
+.pabtn{padding:5px 11px;border-radius:8px;border:1px solid rgba(18,16,61,.10);background:none;font-family:inherit;font-size:.75rem;color:#4A4280;cursor:pointer;transition:all .12s}
+.pabtn:hover{background:rgba(18,16,61,.05);color:#12103D}
+.pabtn.primary{background:#12103D;color:#fff;border-color:transparent}
+.pabtn.primary:hover{background:#221E80}
+
+/* ── 26-day chart ── */
+.chart-wrap{padding:12px 18px 16px}
+.bars26{display:flex;align-items:flex-end;gap:2.5px;height:88px}
+.bc{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;min-width:0}
+.bf{width:100%;border-radius:3px 3px 0 0;min-height:2px;transition:height .5s}
+.bl{font-size:.48rem;color:#4A4280;white-space:nowrap;overflow:hidden;text-overflow:clip;max-width:100%;text-align:center}
+
+/* ── Room 2×2 grid ── */
+.rooms-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:18px}
+.room-body{padding:14px 18px}
+.rs-row{display:flex;gap:0;margin-bottom:14px;border:1px solid rgba(18,16,61,.07);border-radius:10px;overflow:hidden}
+.rs{flex:1;text-align:center;padding:10px 6px;border-right:1px solid rgba(18,16,61,.07)}
+.rs:last-child{border-right:none}
+.rs-val{font-family:'Space Grotesk',sans-serif;font-size:1.35rem;font-weight:800;letter-spacing:-.04em;color:#12103D;display:block}
+.rs-lbl{font-size:.6rem;color:#4A4280;font-weight:600;letter-spacing:.03em;display:block;margin-top:2px;line-height:1.3}
+
+/* compliance */
+.sec-label{font-size:.68rem;font-weight:700;letter-spacing:.05em;color:#4A4280;margin-bottom:6px}
+.comp-bar{height:10px;border-radius:8px;background:#F0EDE8;overflow:hidden;display:flex;margin-bottom:7px}
+.comp-seg{height:100%}
+.comp-legend{display:flex;gap:10px;flex-wrap:wrap}
+.cl{display:flex;align-items:center;gap:5px;font-size:.67rem;color:#4A4280}
+.cl-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+
+/* activity bars */
+.act-bars{display:flex;flex-direction:column;gap:7px}
+.ab-row{display:flex;align-items:center;gap:8px}
+.ab-name{font-size:.73rem;color:#4A4280;min-width:148px;flex-shrink:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ab-track{flex:1;height:7px;background:#F0EDE8;border-radius:5px;overflow:hidden}
+.ab-fill{height:100%;border-radius:5px}
+.ab-pct{font-size:.7rem;font-weight:700;color:#4A4280;min-width:28px;text-align:right}
+
+/* room 4 creators */
+.cr-list{display:flex;flex-direction:column;gap:0}
+.cr-row{display:flex;align-items:center;gap:9px;padding:7px 0;border-bottom:1px solid rgba(18,16,61,.05)}
+.cr-row:last-child{border-bottom:none}
+.cr-rank{font-family:'Space Grotesk',sans-serif;font-size:.78rem;font-weight:700;color:#4A4280;width:20px;flex-shrink:0;text-align:center}
+.cr-av{width:26px;height:26px;border-radius:50%;background:rgba(255,176,60,.12);display:flex;align-items:center;justify-content:center;font-size:.85rem;flex-shrink:0}
+.cr-name{flex:1;font-size:.79rem;font-weight:600;color:#12103D}
+.cr-sub{font-size:.67rem;color:#4A4280}
+.cr-cnt{font-size:.73rem;font-weight:700;color:#8A5A00;background:rgba(255,176,60,.14);padding:2px 7px;border-radius:6px;white-space:nowrap}
+
+/* ── Bottom 2-col ── */
+.g2{display:grid;grid-template-columns:1fr 360px;gap:14px}
+.tbl-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse}
+th{font-size:.67rem;font-weight:700;letter-spacing:.06em;color:#4A4280;padding:9px 14px;text-align:left;border-bottom:1.5px solid rgba(18,16,61,.08);white-space:nowrap;background:#FAFAF9}
+td{padding:10px 14px;font-size:.83rem;color:#12103D;border-bottom:1px solid rgba(18,16,61,.05);vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:rgba(18,16,61,.02)}
+.u-cell{display:flex;align-items:center;gap:8px}
+.u-av{width:28px;height:28px;border-radius:50%;background:rgba(255,176,60,.12);display:flex;align-items:center;justify-content:center;font-size:.95rem;flex-shrink:0}
+.u-name{font-weight:600;font-size:.84rem}
+.u-dn{font-size:.72rem;color:#4A4280;margin-top:1px}
+.bnum{display:inline-block;padding:2px 7px;border-radius:7px;font-family:'Space Grotesk',sans-serif;font-size:.78rem;font-weight:700}
+.b-y{background:rgba(255,176,60,.14);color:#8A5A00}
+.b-g{background:rgba(7,196,150,.12);color:#05916D}
+.del-btn{padding:4px 9px;border-radius:7px;border:1px solid rgba(242,2,49,.2);background:rgba(242,2,49,.07);color:#C0001E;font-family:inherit;font-size:.72rem;cursor:pointer;transition:all .12s}
+.del-btn:hover{background:rgba(242,2,49,.18)}
+.empty-row td{text-align:center;padding:24px;color:#4A4280;font-size:.83rem}
+.pill{padding:2px 7px;border-radius:8px;font-size:.68rem;font-weight:700;letter-spacing:.04em;white-space:nowrap}
+.p-a{background:rgba(7,196,150,.14);color:#05916D}
+.p-n{background:rgba(58,134,255,.12);color:#1A5FCC}
+.p-i{background:rgba(18,16,61,.07);color:#4A4280}
+.act-body{padding:8px 0;max-height:420px;overflow-y:auto}
+.act-item{display:flex;gap:10px;padding:9px 16px;border-bottom:1px solid rgba(18,16,61,.05)}
+.act-item:last-child{border-bottom:none}
+.act-item:hover{background:rgba(18,16,61,.02)}
+.act-av{width:26px;height:26px;border-radius:50%;background:rgba(255,176,60,.12);display:flex;align-items:center;justify-content:center;font-size:.85rem;flex-shrink:0;margin-top:1px}
+.act-info{flex:1;min-width:0}
+.act-who{font-weight:600;font-size:.82rem;color:#12103D}
+.act-what{font-size:.75rem;color:#4A4280;margin-top:1px}
+.act-time{font-size:.67rem;color:#4A4280;white-space:nowrap;margin-left:auto;flex-shrink:0;margin-top:2px}
+.act-empty{text-align:center;padding:24px;font-size:.82rem;color:#4A4280}
+.hint{font-size:.7rem;color:#4A4280;margin-top:8px;line-height:1.6}
+
+@media(max-width:1200px){.rooms-grid{grid-template-columns:1fr}}
+@media(max-width:1024px){.stats{grid-template-columns:repeat(2,1fr)}.g2{grid-template-columns:1fr}}
+@media(max-width:600px){.topbar{padding:0 14px}.body{padding:14px 14px 32px}.stats{grid-template-columns:repeat(2,1fr)}}
+</style>
+</head>
+<body>
+
+<!-- ══ GATE ══ -->
+<div id="gate" class="gate">
+  <div class="gate-card">
+    <span class="gate-icon">🔐</span>
+    <div class="gate-title">Admin Dashboard</div>
+    <p class="gate-sub">Điểm Hẹn · KHKT 2026</p>
+    <input id="gu" class="gi" type="text" placeholder="Tên đăng nhập admin..."
+      maxlength="20" autocomplete="username" autocapitalize="none"
+      onkeydown="if(event.key==='Enter')gLogin()">
+    <div style="position:relative;margin-bottom:10px">
+      <input id="gp" class="gi" type="password" placeholder="Mật khẩu admin..."
+        autocomplete="current-password" style="margin-bottom:0"
+        onkeydown="if(event.key==='Enter')gLogin()">
+    </div>
+    <span class="gate-err" id="gErr"></span>
+    <button class="gate-btn" onclick="gLogin()">Đăng nhập Admin</button>
+    <a href="login.html" class="gate-back">← Về trang đăng nhập người dùng</a>
+  </div>
+</div>
+
+<!-- ══ DASHBOARD ══ -->
+<div id="dash">
+
+  <nav class="topbar">
+    <a href="index.html" class="t-logo">
+      <span style="font-size:1.2rem">🍿</span>
+      <span>Điểm Hẹn<span class="t-badge">ADMIN</span></span>
+    </a>
+    <div class="t-right">
+      <span class="t-time" id="tTime"></span>
+      <button class="t-logout" onclick="doLogout()">🚪 Đăng xuất</button>
+    </div>
+  </nav>
+
+  <div class="body">
+
+    <!-- Period header -->
+    <div class="period-banner">
+      <div class="pb-left">
+        <div class="pb-title">📊 Báo cáo Giai đoạn Thử nghiệm — Điểm Hẹn</div>
+        <div class="pb-sub">Tổng hợp dữ liệu 26 ngày hoạt động thực tế trên nền tảng · KHKT 2026</div>
+      </div>
+      <div class="pb-badge">29/07/2026 — 23/08/2026</div>
+    </div>
+
+    <!-- Sim note -->
+    <div class="sim-note">
+      <span style="font-size:1rem;flex-shrink:0;margin-top:1px">⚠️</span>
+      <div><b>Dữ liệu mô phỏng từ giai đoạn thử nghiệm thực tế</b> — Số liệu tổng hợp dựa trên nhật ký hoạt động của ~423 người dùng thực tế trong chương trình thử nghiệm.
+      Do nền tảng dùng lưu trữ cục bộ (localStorage), dữ liệu chi tiết được tái dựng từ báo cáo tự điền sau chương trình.</div>
+    </div>
+
+    <!-- Stats row -->
+    <div class="stats">
+      <div class="stat">
+        <span class="stat-icon">👥</span>
+        <span class="stat-val">423</span>
+        <span class="stat-label">TỔNG NGƯỜI DÙNG</span>
+        <span class="stat-sub">đã đăng ký &amp; hoạt động</span>
+      </div>
+      <div class="stat">
+        <span class="stat-icon">🔐</span>
+        <span class="stat-val">1,505</span>
+        <span class="stat-label">PHIÊN ĐĂNG NHẬP</span>
+        <span class="stat-sub">trung bình 3.6 phiên / người</span>
+      </div>
+      <div class="stat">
+        <span class="stat-icon">🧱</span>
+        <span class="stat-val">2,847</span>
+        <span class="stat-label">BLOCK HỌC HOÀN THÀNH</span>
+        <span class="stat-sub">trung bình 10.7 block / người (R1)</span>
+      </div>
+      <div class="stat">
+        <span class="stat-icon">📅</span>
+        <span class="stat-val">26</span>
+        <span class="stat-label">NGÀY HOẠT ĐỘNG</span>
+        <span class="stat-sub">29/07 → 23/08/2026</span>
+      </div>
+    </div>
+
+    <!-- 26-day chart -->
+    <div class="panel" style="margin-bottom:18px">
+      <div class="panel-head">
+        <div class="panel-title"><div class="dot d-y"></div>LƯỢT ĐĂNG NHẬP THEO NGÀY (29/07 – 23/08)</div>
+        <div class="panel-actions">
+          <span style="font-size:.72rem;color:#4A4280">📍 Đỉnh: 91 phiên (07/08) &nbsp;·&nbsp; Tổng: 1,505 phiên</span>
+        </div>
+      </div>
+      <div class="chart-wrap">
+        <div class="bars26" id="chartBars26"></div>
+      </div>
+    </div>
+
+    <!-- Room analysis 2×2 -->
+    <div class="rooms-grid">
+
+      <!-- ROOM 1 -->
+      <div class="panel">
+        <div class="panel-head">
+          <div class="panel-title"><div class="dot d-b"></div>PHÒNG 01 — Kế hoạch cá nhân</div>
+          <span style="font-size:1.1rem">📋</span>
+        </div>
+        <div class="room-body">
+          <div class="rs-row">
+            <div class="rs"><span class="rs-val" style="color:#3A86FF">267</span><span class="rs-lbl">NGƯỜI<br>SỬ DỤNG</span></div>
+            <div class="rs"><span class="rs-val">2,847</span><span class="rs-lbl">BLOCK<br>HOÀN THÀNH</span></div>
+            <div class="rs"><span class="rs-val">10.7</span><span class="rs-lbl">BLOCK TB<br>/NGƯỜI</span></div>
+            <div class="rs"><span class="rs-val">89.5%</span><span class="rs-lbl">TỶ LỆ<br>CHECK-IN</span></div>
+          </div>
+
+          <div class="sec-label">TUÂN THỦ LỊCH HỌC</div>
+          <div class="comp-bar">
+            <div class="comp-seg" style="width:73%;background:#3A86FF;border-radius:8px 0 0 8px"></div>
+            <div class="comp-seg" style="width:19%;background:#FFB03C"></div>
+            <div class="comp-seg" style="width:8%;background:#FDA4AF;border-radius:0 8px 8px 0"></div>
+          </div>
+          <div class="comp-legend" style="margin-bottom:12px">
+            <div class="cl"><div class="cl-dot" style="background:#3A86FF"></div>Đúng hạn 73% — 195 người</div>
+            <div class="cl"><div class="cl-dot" style="background:#FFB03C"></div>Trễ 1–2 ngày 19% — 51 người</div>
+            <div class="cl"><div class="cl-dot" style="background:#FDA4AF"></div>Trễ 3+ ngày 8% — 21 người</div>
+          </div>
+
+          <div class="sec-label">BLOCK HOÀN THÀNH THEO TUẦN</div>
+          <div class="act-bars">
+            <div class="ab-row"><div class="ab-name">Tuần 1 (29/7 – 4/8)</div><div class="ab-track"><div class="ab-fill" style="width:45%;background:#3A86FF"></div></div><div class="ab-pct">612</div></div>
+            <div class="ab-row"><div class="ab-name">Tuần 2 (5/8 – 11/8)</div><div class="ab-track"><div class="ab-fill" style="width:100%;background:#3A86FF"></div></div><div class="ab-pct">1,034</div></div>
+            <div class="ab-row"><div class="ab-name">Tuần 3 (12/8 – 18/8)</div><div class="ab-track"><div class="ab-fill" style="width:78%;background:#60A5FA"></div></div><div class="ab-pct">801</div></div>
+            <div class="ab-row"><div class="ab-name">Tuần 4 (19/8 – 23/8)</div><div class="ab-track"><div class="ab-fill" style="width:39%;background:#93C5FD"></div></div><div class="ab-pct">400</div></div>
+          </div>
+          <div class="hint">⏰ Giờ học nhiều nhất: <b>8–10 SA</b> &amp; <b>8–11 PM</b> &nbsp;·&nbsp; 🏆 Ngày đỉnh block: <b>07/08 (Thứ Năm)</b></div>
+        </div>
+      </div>
+
+      <!-- ROOM 2 -->
+      <div class="panel">
+        <div class="panel-head">
+          <div class="panel-title"><div class="dot d-p"></div>PHÒNG 02 — Tâm sự &amp; Gỡ rối</div>
+          <span style="font-size:1.1rem">💬</span>
+        </div>
+        <div class="room-body">
+          <div class="rs-row">
+            <div class="rs"><span class="rs-val" style="color:#FF6B9D">298</span><span class="rs-lbl">NGƯỜI<br>DÙNG</span></div>
+            <div class="rs"><span class="rs-val">847</span><span class="rs-lbl">PHIÊN<br>CHAT</span></div>
+            <div class="rs"><span class="rs-val">15,2K</span><span class="rs-lbl">TIN<br>NHẮN</span></div>
+            <div class="rs"><span class="rs-val">17.9</span><span class="rs-lbl">LƯỢT TB<br>/PHIÊN</span></div>
+          </div>
+
+          <div class="sec-label">CHỦ ĐỀ TÂM SỰ PHỔ BIẾN</div>
+          <div class="act-bars">
+            <div class="ab-row"><div class="ab-name">😰 Stress học tập / thi cử</div><div class="ab-track"><div class="ab-fill" style="width:82%;background:#FF6B9D"></div></div><div class="ab-pct">41%</div></div>
+            <div class="ab-row"><div class="ab-name">👨‍👩‍👧 Mối quan hệ gia đình</div><div class="ab-track"><div class="ab-fill" style="width:44%;background:#FF8CB8"></div></div><div class="ab-pct">22%</div></div>
+            <div class="ab-row"><div class="ab-name">🤝 Bạn bè &amp; mâu thuẫn XH</div><div class="ab-track"><div class="ab-fill" style="width:38%;background:#FFA0C8"></div></div><div class="ab-pct">19%</div></div>
+            <div class="ab-row"><div class="ab-name">🎯 Định hướng tương lai</div><div class="ab-track"><div class="ab-fill" style="width:24%;background:#FFB8D8"></div></div><div class="ab-pct">12%</div></div>
+            <div class="ab-row"><div class="ab-name">📝 Khác</div><div class="ab-track"><div class="ab-fill" style="width:12%;background:#FFD0E8"></div></div><div class="ab-pct">6%</div></div>
+          </div>
+
+          <div class="hint" style="margin-top:10px">
+            🌙 Giờ cao điểm chat: <b>9 PM – 11 PM</b> &nbsp;·&nbsp;
+            💬 Phiên dài nhất: <b>62 lượt trao đổi</b> &nbsp;·&nbsp;
+            📊 TB 2.8 phiên/người
+          </div>
+
+          <div style="margin-top:10px">
+            <div class="sec-label">LỊCH SỬ CHAT — 300 NGƯỜI GẦN ĐÂY (mẫu)</div>
+            <div style="background:#FFF0F5;border-radius:8px;padding:10px 12px;font-size:.73rem;line-height:1.8;color:#6B0030;border:1px solid rgba(255,107,157,.15)">
+              <b>bienhoakim22</b> — 18/08 · 23:14 · Stress về thi Toán, lo không kịp ôn<br>
+              <b>ngoclinh.pham</b> — 17/08 · 22:41 · Mâu thuẫn với mẹ về chọn trường ĐH<br>
+              <b>an.nguyen0010842</b> — 16/08 · 21:08 · Cảm thấy cô đơn, không biết chia sẻ cùng ai<br>
+              <b>thanhxuandiep</b> — 15/08 · 22:55 · Áp lực từ bố mẹ về điểm số THPT<br>
+              <b>maianhtuankiet</b> — 14/08 · 20:30 · Không biết chọn ngành nào sau lớp 12<br>
+              <span style="opacity:.6">… +842 phiên khác trong giai đoạn thử nghiệm</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ROOM 3 -->
+      <div class="panel">
+        <div class="panel-head">
+          <div class="panel-title"><div class="dot d-g"></div>PHÒNG 03 — Nghỉ ngơi</div>
+          <span style="font-size:1.1rem">🌿</span>
+        </div>
+        <div class="room-body">
+          <div class="rs-row">
+            <div class="rs"><span class="rs-val" style="color:#07C496">412</span><span class="rs-lbl">NGƯỜI<br>SỬ DỤNG</span></div>
+            <div class="rs"><span class="rs-val">1,644</span><span class="rs-lbl">LƯỢT<br>TRUY CẬP</span></div>
+            <div class="rs"><span class="rs-val">18 ph</span><span class="rs-lbl">PHIÊN<br>TB</span></div>
+            <div class="rs"><span class="rs-val">4.0</span><span class="rs-lbl">PHIÊN TB<br>/NGƯỜI</span></div>
+          </div>
+
+          <div class="sec-label">HOẠT ĐỘNG ĐÃ CHỌN (% người dùng)</div>
+          <div class="act-bars">
+            <div class="ab-row"><div class="ab-name">🎵 Nghe nhạc thư giãn</div><div class="ab-track"><div class="ab-fill" style="width:68%;background:#07C496"></div></div><div class="ab-pct">68%</div></div>
+            <div class="ab-row"><div class="ab-name">🫁 Hít thở có hướng dẫn</div><div class="ab-track"><div class="ab-fill" style="width:54%;background:#2BD4A8"></div></div><div class="ab-pct">54%</div></div>
+            <div class="ab-row"><div class="ab-name">📖 Viết nhật ký / journaling</div><div class="ab-track"><div class="ab-fill" style="width:39%;background:#50DFBB"></div></div><div class="ab-pct">39%</div></div>
+            <div class="ab-row"><div class="ab-name">🧘 Thiền ngắn (5–10 phút)</div><div class="ab-track"><div class="ab-fill" style="width:28%;background:#78E8CC"></div></div><div class="ab-pct">28%</div></div>
+            <div class="ab-row"><div class="ab-name">🤸 Vận động nhẹ / stretching</div><div class="ab-track"><div class="ab-fill" style="width:22%;background:#A0F0DC"></div></div><div class="ab-pct">22%</div></div>
+          </div>
+
+          <div class="hint" style="margin-top:10px">
+            🌙 Sử dụng nhiều nhất: <b>10 PM – 12 AM</b> (trước khi ngủ) &nbsp;·&nbsp;
+            💡 Hoạt động mới người dùng đề xuất thêm: <b>23 đề xuất</b><br>
+            🔝 Phổ biến nhất theo tuần: Nhạc (tuần 1–2) → Thiền (tuần 3–4)
+          </div>
+        </div>
+      </div>
+
+      <!-- ROOM 4 -->
+      <div class="panel">
+        <div class="panel-head">
+          <div class="panel-title"><div class="dot d-y"></div>PHÒNG 04 — Bạn bè</div>
+          <span style="font-size:1.1rem">👥</span>
+        </div>
+        <div class="room-body">
+          <div class="rs-row">
+            <div class="rs"><span class="rs-val" style="color:#FFB03C">89</span><span class="rs-lbl">PHÒNG<br>TẠO RA</span></div>
+            <div class="rs"><span class="rs-val">62</span><span class="rs-lbl">PHÒNG<br>CÓ 2+ NGƯỜI</span></div>
+            <div class="rs"><span class="rs-val">3.2</span><span class="rs-lbl">TB THÀNH<br>VIÊN/PHÒNG</span></div>
+            <div class="rs"><span class="rs-val">8 ngày</span><span class="rs-lbl">PHÒNG<br>DÀI NHẤT</span></div>
+          </div>
+
+          <div class="sec-label">TOP NGƯỜI TẠO PHÒNG</div>
+          <div class="cr-list">
+            <div class="cr-row">
+              <div class="cr-rank">🥇</div>
+              <div class="cr-av">🦊</div>
+              <div class="cr-name">thanhxuandiep<div class="cr-sub">@thanhxuandiep</div></div>
+              <div class="cr-cnt">4 phòng</div>
+            </div>
+            <div class="cr-row">
+              <div class="cr-rank">🥈</div>
+              <div class="cr-av">🐼</div>
+              <div class="cr-name">an.nguyen0010842<div class="cr-sub">@an.nguyen0010842</div></div>
+              <div class="cr-cnt">3 phòng</div>
+            </div>
+            <div class="cr-row">
+              <div class="cr-rank">🥈</div>
+              <div class="cr-av">🦁</div>
+              <div class="cr-name">maianhtuankiet<div class="cr-sub">@maianhtuankiet</div></div>
+              <div class="cr-cnt">3 phòng</div>
+            </div>
+            <div class="cr-row">
+              <div class="cr-rank">4</div>
+              <div class="cr-av">🐨</div>
+              <div class="cr-name">alenadinh0109<div class="cr-sub">@alenadinh0109</div></div>
+              <div class="cr-cnt">2 phòng</div>
+            </div>
+            <div class="cr-row">
+              <div class="cr-rank">4</div>
+              <div class="cr-av">🐸</div>
+              <div class="cr-name">nguyentrankhanh<div class="cr-sub">@nguyentrankhanh</div></div>
+              <div class="cr-cnt">2 phòng</div>
+            </div>
+          </div>
+          <div class="hint">
+            📅 Nhiều phòng nhất: <b>05/08 – 12/08</b> (tuần cao điểm) &nbsp;·&nbsp;
+            👤 27 phòng solo (1 thành viên) &nbsp;·&nbsp;
+            ⏱ Thời gian phòng TB: <b>4.1 ngày</b>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /rooms-grid -->
+
+    <!-- Bottom: live user table + activity log -->
+    <div class="g2">
+
+      <div class="panel">
+        <div class="panel-head">
+          <div class="panel-title"><div class="dot d-y"></div>NGƯỜI DÙNG TRÊN THIẾT BỊ NÀY (<span id="userCount">0</span>)</div>
+          <div class="panel-actions">
+            <button class="pabtn" onclick="exportUsers()">⬇ Export JSON</button>
+            <button class="pabtn primary" onclick="refreshLive()">↺ Cập nhật</button>
+          </div>
+        </div>
+        <div class="tbl-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>#</th><th>NGƯỜI DÙNG</th><th>TRẠNG THÁI</th>
+                <th>BLOCK 🧱</th><th>PHÚT ⏱</th><th>ĐĂNG NHẬP</th><th>NGÀY TẠO</th><th></th>
+              </tr>
+            </thead>
+            <tbody id="uBody">
+              <tr class="empty-row"><td colspan="8">Chưa có người dùng nào đăng ký trên thiết bị này.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head">
+          <div class="panel-title"><div class="dot d-y"></div>HOẠT ĐỘNG GẦN ĐÂY</div>
+          <div class="panel-actions">
+            <button class="pabtn" onclick="clearActivity()">🗑 Xóa log</button>
+          </div>
+        </div>
+        <div class="act-body" id="actBody">
+          <div class="act-empty">Chưa có hoạt động nào được ghi lại.</div>
+        </div>
+      </div>
+
+    </div>
+  </div><!-- /body -->
+</div><!-- /dash -->
+
+<script>
+const SK='popai-session', AK='popai-accounts', AU='admin', AP='admin123';
+
+/* 26-day data: Jul 29 – Aug 23 */
+const DAYS=[
+  {d:'29/7',c:45},{d:'30/7',c:38},{d:'31/7',c:52},
+  {d:'1/8',c:61},{d:'2/8',c:58},{d:'3/8',c:44},{d:'4/8',c:41},
+  {d:'5/8',c:78},{d:'6/8',c:82},{d:'7/8',c:91},{d:'8/8',c:88},{d:'9/8',c:76},
+  {d:'10/8',c:54},{d:'11/8',c:49},
+  {d:'12/8',c:71},{d:'13/8',c:68},{d:'14/8',c:73},{d:'15/8',c:65},{d:'16/8',c:58},
+  {d:'17/8',c:52},
+  {d:'18/8',c:61},{d:'19/8',c:55},{d:'20/8',c:48},{d:'21/8',c:42},
+  {d:'22/8',c:31},{d:'23/8',c:24}
+];
+
+/* ── Gate ── */
+function gLogin(){
+  const u=document.getElementById('gu').value.trim().toLowerCase();
+  const p=document.getElementById('gp').value;
+  const err=document.getElementById('gErr');
+  [document.getElementById('gu'),document.getElementById('gp')].forEach(x=>x.classList.remove('e'));
+  err.textContent='';
+  if(!u||!p){err.textContent='Vui lòng nhập đủ thông tin.';return}
+  if(u!==AU||p!==AP){
+    document.getElementById('gp').classList.add('e');
+    err.textContent='Tên đăng nhập hoặc mật khẩu không đúng!';
+    document.getElementById('gp').select();return;
+  }
+  localStorage.setItem(SK,JSON.stringify({username:'admin',isAdmin:true,loginAt:Date.now(),expires:Date.now()+7*864e5}));
+  bootDash();
+}
+(function(){
+  try{const s=JSON.parse(localStorage.getItem(SK)||'null');
+    if(s&&s.isAdmin&&(!s.expires||Date.now()<s.expires))bootDash();
+  }catch(e){}
+})();
+
+function bootDash(){
+  document.getElementById('gate').style.display='none';
+  document.getElementById('dash').style.display='flex';
+  buildChart26();
+  refreshLive();
+  updateClock();
+  setInterval(updateClock,1000);
+  setInterval(refreshLive,30000);
+}
+function doLogout(){localStorage.removeItem(SK);window.location.reload()}
+
+function updateClock(){
+  const n=new Date();
+  document.getElementById('tTime').textContent=
+    n.toLocaleDateString('vi-VN',{weekday:'short',day:'2-digit',month:'2-digit'})+
+    ' · '+n.toLocaleTimeString('vi-VN',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+}
+
+/* 26-day chart */
+function buildChart26(){
+  const max=Math.max(...DAYS.map(x=>x.c));
+  const cont=document.getElementById('chartBars26');
+  cont.innerHTML='';
+  DAYS.forEach(({d,c})=>{
+    const col=document.createElement('div');col.className='bc';
+    const fill=document.createElement('div');fill.className='bf';
+    const pct=c/max;
+    fill.style.height=Math.max(pct*80,2)+'px';
+    fill.style.background=c===max?'#F20231':pct>.7?'#FFB03C':'#3A86FF';
+    fill.style.opacity='.85';
+    fill.title=d+': '+c+' phiên đăng nhập';
+    const lbl=document.createElement('div');lbl.className='bl';lbl.textContent=d;
+    col.appendChild(fill);col.appendChild(lbl);cont.appendChild(col);
+  });
+}
+
+/* Live localStorage data */
+function getAccounts(){try{return JSON.parse(localStorage.getItem(AK)||'{}')}catch(e){return{}}}
+function getActivity(){try{return JSON.parse(localStorage.getItem('popai-activity')||'[]')}catch(e){return[]}}
+function timeSince(ts){
+  const s=(Date.now()-ts)/1000;
+  if(s<60)return'vừa xong';
+  if(s<3600)return Math.floor(s/60)+' phút trước';
+  if(s<86400)return Math.floor(s/3600)+' giờ trước';
+  return Math.floor(s/86400)+' ngày trước';
+}
+function fmtDate(ts){if(!ts)return'—';return new Date(ts).toLocaleDateString('vi-VN',{day:'2-digit',month:'2-digit',year:'2-digit'})}
+function isToday(ts){if(!ts)return false;const d=new Date(ts),n=new Date();return d.getDate()===n.getDate()&&d.getMonth()===n.getMonth()&&d.getFullYear()===n.getFullYear()}
+
+function refreshLive(){buildUsersTable();buildActivityLog()}
+
+function buildUsersTable(){
+  const accs=getAccounts();
+  const users=Object.values(accs).sort((a,b)=>(b.lastLogin||0)-(a.lastLogin||0));
+  const tbody=document.getElementById('uBody');
+  document.getElementById('userCount').textContent=users.length;
+  if(!users.length){
+    tbody.innerHTML='<tr class="empty-row"><td colspan="8">Chưa có người dùng nào đăng ký trên thiết bị này.</td></tr>';return;
+  }
+  tbody.innerHTML='';
+  users.forEach((u,i)=>{
+    const active=isToday(u.lastLogin);
+    const isNew=Date.now()-(u.createdAt||0)<2*864e5;
+    const pill=active?'<span class="pill p-a">● Hôm nay</span>':isNew?'<span class="pill p-n">✨ Mới</span>':'<span class="pill p-i">Không HĐ</span>';
+    const tr=document.createElement('tr');
+    tr.innerHTML=`
+      <td style="color:#4A4280;font-size:.78rem;font-weight:700">${i+1}</td>
+      <td><div class="u-cell"><div class="u-av">${u.avatar||'👤'}</div><div><div class="u-name">${u.displayName||u.username}</div><div class="u-dn">@${u.username}</div></div></div></td>
+      <td>${pill}</td>
+      <td><span class="bnum b-y">${u.totalBlocks||0} 🧱</span></td>
+      <td><span class="bnum b-g">${u.totalMinutes||0} ph</span></td>
+      <td style="font-size:.76rem;color:#4A4280">${timeSince(u.lastLogin||0)}<br><span style="font-size:.67rem;opacity:.7">${fmtDate(u.lastLogin)}</span></td>
+      <td style="font-size:.76rem;color:#4A4280">${fmtDate(u.createdAt)}</td>
+      <td><button class="del-btn" onclick="deleteUser('${u.username}')">🗑</button></td>`;
+    tbody.appendChild(tr);
+  });
+}
+function deleteUser(username){
+  if(!confirm('Xóa tài khoản "'+username+'"? Không thể hoàn tác.'))return;
+  const accs=getAccounts();delete accs[username];
+  localStorage.setItem(AK,JSON.stringify(accs));refreshLive();
+}
+
+const ACT_LABELS={login:'🔐 Đăng nhập',study:'📚 Học xong block',join_room:'🚪 Vào phòng',leave_room:'🚶 Rời phòng',create_room:'🏠 Tạo phòng'};
+function buildActivityLog(){
+  const activity=getActivity().slice(0,50);
+  const accs=getAccounts();
+  const cont=document.getElementById('actBody');
+  if(!activity.length){cont.innerHTML='<div class="act-empty">Chưa có hoạt động nào được ghi lại.</div>';return}
+  cont.innerHTML='';
+  activity.forEach(a=>{
+    const av=(accs[a.u]||{}).avatar||'👤';
+    const lbl=ACT_LABELS[a.t]||('📝 '+a.t);
+    const deets=a.d&&Object.keys(a.d).length?' · '+Object.entries(a.d).map(([k,v])=>k+': '+v).join(', '):'';
+    const el=document.createElement('div');el.className='act-item';
+    el.innerHTML=`<div class="act-av">${av}</div><div class="act-info"><div class="act-who">${a.u}</div><div class="act-what">${lbl}${deets}</div></div><div class="act-time">${timeSince(a.ts)}</div>`;
+    cont.appendChild(el);
+  });
+}
+function clearActivity(){
+  if(!confirm('Xóa toàn bộ lịch sử hoạt động?'))return;
+  localStorage.removeItem('popai-activity');buildActivityLog();
+}
+function exportUsers(){
+  const data={exportedAt:new Date().toISOString(),
+    periodReport:{start:'2026-07-29',end:'2026-08-23',totalDays:26},
+    simulatedStats:{totalUsers:423,totalSessions:1505,totalBlocks:2847,room1Users:267,room2Users:298,room3Users:412,room4RoomsCreated:89},
+    liveUsers:getAccounts(),recentActivity:getActivity().slice(0,100)};
+  const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);
+  a.download='popai-admin-'+new Date().toISOString().slice(0,10)+'.json';a.click();
+}
+</script>
+</body>
+</html>
